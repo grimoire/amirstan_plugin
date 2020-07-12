@@ -6,8 +6,8 @@ These plugins are used to support some other project such as https://github.com/
 
 ## Requirement
 
-Tensorrt >= 7.0.0.11
-cub >= 1.8.0
+- Tensorrt >= 7.0.0.11
+- cub >= 1.8.0
 
 ## Installation
 
