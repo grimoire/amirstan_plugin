@@ -9,6 +9,7 @@
 #include "plugin/roiExtractorPlugin/roiExtractorPlugin.h"
 #include "plugin/delta2bboxPlugin/delta2bboxPlugin.h"
 #include "plugin/batchedNMSPlugin/batchedNMSPlugin.h"
+#include "plugin/torchGatherPlugin/torchGatherPlugin.h"
 
 
 extern "C"

@@ -17,6 +17,7 @@ set(PLUGIN_LIST deformableConvPlugin
                 roiExtractorPlugin
                 delta2bboxPlugin
                 batchedNMSPlugin
+                torchGatherPlugin
                 )
 
 set(INFER_PLUGIN_SRC InferPlugin.cpp
