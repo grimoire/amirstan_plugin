@@ -14,6 +14,8 @@ These plugins are used to support some other project such as https://github.com/
 config CUB_ROOT_DIR / TENSORRT_ROOT or other library in CMakeLists.txt
 
 ```shell
+git clone https://github.com/grimoire/amirstan_plugin.git
+cd amirstan_plugin
 mkdir build
 cd build
 cmake ..
