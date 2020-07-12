@@ -22,7 +22,7 @@ cmake ..
 make -j10
 ```
 
-set the envoirment variable(in .bashrc):
+set the envoirment variable(in ~/.bashrc):
 
 ```shell
 export AMIRSTAN_LIBRARY_PATH=<amirstan_plugin_root>/build/lib
