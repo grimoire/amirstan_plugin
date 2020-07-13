@@ -1,7 +1,11 @@
 # Amirstan_plugin
 
 Amirstan plugin contain some useful tensorrt plugin.
-These plugins are used to support some other project such as https://github.com/grimoire/torch2trt_dynamic
+These plugins are used to support some other project such as 
+
+https://github.com/grimoire/torch2trt_dynamic 
+
+https://github.com/grimoire/mmdetection-to-tensorrt
 
 
 ## Requirement
