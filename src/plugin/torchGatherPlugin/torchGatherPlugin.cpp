@@ -97,13 +97,13 @@ int TorchGatherPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDes
     switch(data_type){
     case nvinfer1::DataType::kFLOAT:
         torch_gather<float>((float*)outputs[0], (float*)inputs[0], (int*)inputs[1], 
-        mDim, &(input_dims.d[0]), &(input_dims.d[1]), input_dims.nbDims, 
+        mDim, &(input_dims.d[0]), &(index_dims.d[0]), input_dims.nbDims, 
         stream);
         break;
 
     case nvinfer1::DataType::kHALF:
         torch_gather<half>((half*)outputs[0], (half*)inputs[0], (int*)inputs[1], 
-        mDim, &(input_dims.d[0]), &(input_dims.d[1]), input_dims.nbDims, 
+        mDim, &(input_dims.d[0]), &(index_dims.d[0]), input_dims.nbDims, 
         stream);
         break;
     default:

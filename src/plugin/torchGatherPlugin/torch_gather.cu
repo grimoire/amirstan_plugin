@@ -29,9 +29,9 @@ namespace plugin
             const int gather_value = gather_table[dst_index];
             for (int i = 0; i < nb_dims; ++i)
             {
+                int dim_index = dst_index / dst_stride[i];
                 dst_index = dst_index % dst_stride[i];
                 if(i!=dim){
-                    int dim_index = dst_index / dst_stride[i];
                     src_index+=dim_index*src_stride[i];
                 }else{
                     src_index+=gather_value*src_stride[i];
