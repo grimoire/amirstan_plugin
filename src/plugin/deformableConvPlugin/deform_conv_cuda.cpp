@@ -100,7 +100,7 @@ int deform_conv_forward_cuda(float *input, float *weight, float *offset,
                         col_start, n,
                         weight_start, k,
                         &beta,
-                        output_buffer, n);
+                        out_buffer_start, n);
         }
     }
 

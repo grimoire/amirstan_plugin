@@ -222,7 +222,7 @@ size_t DeformableConvPluginDynamic::getWorkspaceSize(
     size_t col_size = nInputPlane * kW * kH * im2col_step * outputHeight * outputWidth * sizeof_dtype;
 
     size_t out_size = 0;
-    if (im2col_step == 1)
+    if (im2col_step != 1)
         out_size = batch_size * nOutputPlane * outputHeight * outputWidth * sizeof_dtype;
 
     return col_size + out_size + 100 * sizeof(float);
