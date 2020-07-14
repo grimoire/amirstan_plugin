@@ -77,8 +77,9 @@ DeformableConvPluginDynamic::DeformableConvPluginDynamic(const std::string name,
     mW.values = mWhost.get();
 
     mW.count = mNumParamsW;
+    mW.type = mType;
     // mW.values = nullptr;
-    initialize();
+    // initialize();
 }
 
 void DeformableConvPluginDynamic::setStrideNd(nvinfer1::Dims stride)
@@ -180,7 +181,7 @@ bool DeformableConvPluginDynamic::supportsFormatCombination(int pos, const nvinf
     switch (pos)
     {
     case 0:
-        return in[0].format == nvinfer1::TensorFormat::kLINEAR;
+        return in[0].type== DataType::kFLOAT && in[0].format == nvinfer1::TensorFormat::kLINEAR;
     case 1:
         return in[1].type == in[0].type &&
                in[0].format == nvinfer1::TensorFormat::kLINEAR;
