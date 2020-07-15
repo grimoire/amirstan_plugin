@@ -1,6 +1,7 @@
 
 #include "plugin/amirInferPlugin.h"
 #include "plugin/deformableConvPlugin/deformableConvPlugin.h"
+#include "plugin/deformableConvPlugin/modulatedDeformableConvPlugin.h"
 #include "plugin/groupNormPlugin/groupNormPlugin.h"
 #include "plugin/repeatDimsPlugin/repeatDimsPlugin.h"
 #include "plugin/exViewPlugin/exViewPlugin.h"

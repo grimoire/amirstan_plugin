@@ -27,3 +27,9 @@ int deform_conv_forward_cuda(float *input, float *weight, float *offset,
                              float *output, void* workspace,
                              const DCN_PARAMS &dcn_params,
                              cudaStream_t stream = 0);
+
+                             
+void modulated_deform_conv_cuda_forward(
+    float* input, float* weight, float* bias,
+    float* offset, float* mask, float* output, 
+    void *workspace, const DCN_PARAMS &dcn_params, cudaStream_t stream=0);
