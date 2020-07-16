@@ -18,6 +18,7 @@ set(PLUGIN_LIST deformableConvPlugin
                 delta2bboxPlugin
                 batchedNMSPlugin
                 torchGatherPlugin
+                deformablePoolPlugin
                 )
 
 set(INFER_PLUGIN_SRC InferPlugin.cpp
