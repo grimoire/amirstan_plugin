@@ -100,6 +100,7 @@ nvinfer1::DimsExprs Delta2BBoxPluginDynamic::getOutputDimensions(
     ret.d[2] = exprBuilder.constant(mNumClasses);
 
     if(outputIndex==1){
+        ret.d[2] = exprBuilder.constant(1);
         ret.d[3] = exprBuilder.constant(4);
     }
 

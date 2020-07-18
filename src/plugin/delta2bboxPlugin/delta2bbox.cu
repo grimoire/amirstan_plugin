@@ -70,16 +70,21 @@ namespace plugin
       }
 
       // bbox
-      const int out_bbox_id = out_cls_id * 4;
-      const T dx = in_bbox[in_cls_id*4 + bbox_id]*mean_std.std[0] + mean_std.mean[0];
-      const T dy = in_bbox[in_cls_id*4 + num_bbox + bbox_id]*mean_std.std[1] + mean_std.mean[1];
-      const T dw = in_bbox[in_cls_id*4 + num_bbox*2 + bbox_id]*mean_std.std[2] + mean_std.mean[2];
-      const T dh = in_bbox[in_cls_id*4 + num_bbox*3 + bbox_id]*mean_std.std[3] + mean_std.mean[3];
+      if(class_id!=0){
+        continue;
+      }
+      // const int out_bbox_id = out_cls_id * 4 /num_classes;
+      const int out_bbox_id = (batch_id*num_bbox*num_ratios + bbox_id*num_ratios+ratio_id)*4;
+      const int in_delta_id = batch_id*num_bbox*num_ratios + ratio_id*num_bbox;
+      const T dx = in_bbox[in_delta_id*4 + bbox_id]*mean_std.std[0] + mean_std.mean[0];
+      const T dy = in_bbox[in_delta_id*4 + num_bbox + bbox_id]*mean_std.std[1] + mean_std.mean[1];
+      const T dw = in_bbox[in_delta_id*4 + num_bbox*2 + bbox_id]*mean_std.std[2] + mean_std.mean[2];
+      const T dh = in_bbox[in_delta_id*4 + num_bbox*3 + bbox_id]*mean_std.std[3] + mean_std.mean[3];
 
       const T clamp_dw = max(-max_ratio, min(max_ratio, dw));
       const T clamp_dh = max(-max_ratio, min(max_ratio, dh));
 
-      const int anchor_start = (batch_id*num_bbox*ratio_id + bbox_id*num_ratios + ratio_id)*4;
+      const int anchor_start = out_bbox_id;
       const T px = (anchor[anchor_start]+anchor[anchor_start+2])*0.5;
       const T py = (anchor[anchor_start+1]+anchor[anchor_start+3])*0.5;
       const T pw = anchor[anchor_start+2]-anchor[anchor_start] + 1;
