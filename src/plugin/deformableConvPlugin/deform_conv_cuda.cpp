@@ -164,8 +164,7 @@ void modulated_deform_conv_cuda_forward(
     const int width_out =
         (width + 2 * pad_w - (dilation_w * (kernel_w - 1) + 1)) / stride_w + 1;
 
-    float* ones = (float*)workspace;
-    float* columns = ones+height_out*width_out;
+    float* columns=(float*)workspace;
 
     const size_t input_step = channels*height*width;
     const size_t offset_step = channels/3*2*height*width;

@@ -241,14 +241,9 @@ size_t ModulatedDeformableConvPluginDynamic::getWorkspaceSize(
     int kH = mKernelSize.d[1];
     int im2col_step = std::min(int(batch_size), 64);
 
-    size_t one_size = outputHeight * outputWidth * sizeof_dtype;
     size_t col_size = nInputPlane * kW * kH * outputHeight * outputWidth * sizeof_dtype;
 
-    size_t out_size = 0;
-    if (im2col_step != 1)
-        out_size = batch_size * nOutputPlane * outputHeight * outputWidth * sizeof_dtype;
-
-    return col_size + out_size + 100 * sizeof(float);
+    return col_size + 100 * sizeof(float);
 }
 
 int ModulatedDeformableConvPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc, const nvinfer1::PluginTensorDesc *outputDesc,

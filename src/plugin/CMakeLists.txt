@@ -19,6 +19,7 @@ set(PLUGIN_LIST deformableConvPlugin
                 batchedNMSPlugin
                 torchGatherPlugin
                 deformablePoolPlugin
+                adaptivePoolPlugin
                 )
 
 set(INFER_PLUGIN_SRC InferPlugin.cpp
