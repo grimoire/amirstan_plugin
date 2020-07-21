@@ -20,6 +20,7 @@ set(PLUGIN_LIST deformableConvPlugin
                 torchGatherPlugin
                 deformablePoolPlugin
                 adaptivePoolPlugin
+                meshGridPlugin
                 )
 
 set(INFER_PLUGIN_SRC InferPlugin.cpp

@@ -55,19 +55,32 @@ nvinfer1::DimsExprs AdaptivePoolPluginDynamic::getOutputDimensions(
 {
     nvinfer1::DimsExprs ret;
     int nbdims_input = inputs[0].nbDims;
-    int reduce_dims = mOutputSize.nbDims;
     ret.nbDims = nbdims_input;
 
-    for(int i=0;i<nbdims_input-reduce_dims;++i){
-        ret.d[i] = inputs[0].d[i];
-    }
-
-    for(int i=nbdims_input-reduce_dims; i<nbdims_input; ++i){
-        int o_size = mOutputSize.d[i-nbdims_input+reduce_dims];
-        if(o_size>0){
-            ret.d[i] = exprBuilder.constant(o_size);
-        }else{
+    if(nbInputs>1){
+        int reduce_dims = inputs[1].nbDims;
+        for(int i=0;i<nbdims_input-reduce_dims;++i){
             ret.d[i] = inputs[0].d[i];
+        }
+
+        for(int i=nbdims_input-reduce_dims; i<nbdims_input; ++i){
+            ret.d[i] = inputs[1].d[i-nbdims_input+reduce_dims];
+        }
+
+    }else{
+        int reduce_dims = mOutputSize.nbDims;
+
+        for(int i=0;i<nbdims_input-reduce_dims;++i){
+            ret.d[i] = inputs[0].d[i];
+        }
+        for(int i=nbdims_input-reduce_dims; i<nbdims_input; ++i){
+
+            int o_size = mOutputSize.d[i-nbdims_input+reduce_dims];
+            if(o_size>0){
+                ret.d[i] = exprBuilder.constant(o_size);
+            }else{
+                ret.d[i] = inputs[0].d[i];
+            }
         }
     }
 
@@ -76,17 +89,26 @@ nvinfer1::DimsExprs AdaptivePoolPluginDynamic::getOutputDimensions(
 
 bool AdaptivePoolPluginDynamic::supportsFormatCombination(int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs, int nbOutputs)
 {
-    assert(0 <= pos && pos < 2);
+    // assert(0 <= pos && pos < 2);
     const auto *in = inOut;
     const auto *out = inOut + nbInputs;
 
-    switch (pos)
-    {
-    case 0:
-        return (in[0].type == nvinfer1::DataType::kFLOAT && in[0].format == nvinfer1::TensorFormat::kLINEAR);
-    case 1:
-        return out[0].type == in[0].type &&
-               out[0].format == in[0].format;
+    if(pos<nbInputs){
+        switch (pos)
+        {
+            case 0:
+                return (in[0].type == nvinfer1::DataType::kFLOAT && in[0].format == nvinfer1::TensorFormat::kLINEAR);
+        }
+
+    }else{
+        switch (pos-nbInputs)
+        {
+            case 0:
+                return out[0].type == in[0].type &&
+                    out[0].format == in[0].format;
+        }
+
+
     }
 }
 
@@ -95,7 +117,7 @@ void AdaptivePoolPluginDynamic::configurePlugin(
 {
     // Validate input arguments
     assert(nbOutputs == 1);
-    assert(nbInputs == 1);
+    // assert(nbInputs == 1);
 }
 
 size_t AdaptivePoolPluginDynamic::getWorkspaceSize(
@@ -134,7 +156,7 @@ int AdaptivePoolPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDe
 
 nvinfer1::DataType AdaptivePoolPluginDynamic::getOutputDataType(int index, const nvinfer1::DataType *inputTypes, int nbInputs) const
 {
-    assert(nbInputs == 1);
+    // assert(nbInputs == 1);
     return inputTypes[0];
 }
 

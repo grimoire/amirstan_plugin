@@ -13,6 +13,7 @@
 #include "plugin/batchedNMSPlugin/batchedNMSPlugin.h"
 #include "plugin/torchGatherPlugin/torchGatherPlugin.h"
 #include "plugin/adaptivePoolPlugin/adaptivePoolPlugin.h"
+#include "plugin/meshGridPlugin/meshGridPlugin.h"
 
 
 extern "C"
