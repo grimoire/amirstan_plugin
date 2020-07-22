@@ -15,7 +15,7 @@ class MeshGridPluginDynamic : public nvinfer1::IPluginV2DynamicExt
 {
 public:
     MeshGridPluginDynamic(
-        const std::string &name, int numInputs, const nvinfer1::Dims &sliceDims, const nvinfer1::Dims &starts, const nvinfer1::Dims &strides);
+        const std::string &name, int numInputs, const nvinfer1::Dims &sliceDims, const std::vector<float> &starts,const std::vector<float> &strides);
 
     MeshGridPluginDynamic(const std::string name, const void *data, size_t length);
 
@@ -57,8 +57,8 @@ private:
 
     int mNumInputs;
     nvinfer1::Dims mSliceDims;
-    nvinfer1::Dims mStarts;
-    nvinfer1::Dims mStrides;
+    std::vector<float> mStarts;
+    std::vector<float> mStrides;
 
     int mPoolingType;
 

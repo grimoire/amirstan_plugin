@@ -6,7 +6,7 @@
 #include "amirCommon.h"
 #include "serialize.hpp"
 #include "amir_cuda_util/cuda_util.h"
-
+#include "mesh_grid.h"
 
 namespace amirstan
 {
@@ -27,14 +27,14 @@ std::vector<PluginField> MeshGridPluginDynamicCreator::mPluginAttributes({
                                                                         PluginField("strides")});
 
 MeshGridPluginDynamic::MeshGridPluginDynamic(
-        const std::string &name, int numInputs, const nvinfer1::Dims &sliceDims, const nvinfer1::Dims &starts, const nvinfer1::Dims &strides)
+        const std::string &name, int numInputs, const nvinfer1::Dims &sliceDims, const std::vector<float> &starts,const std::vector<float> &strides)
     : mLayerName(name),
       mNumInputs(numInputs),
       mSliceDims(sliceDims),
       mStarts(starts),
       mStrides(strides)
 {
-    
+
 }
 
 MeshGridPluginDynamic::MeshGridPluginDynamic(const std::string name, const void *data, size_t length)
@@ -42,8 +42,16 @@ MeshGridPluginDynamic::MeshGridPluginDynamic(const std::string name, const void 
 {
     deserialize_value(&data, &length, &mNumInputs);
     deserialize_value(&data, &length, &mSliceDims);
-    deserialize_value(&data, &length, &mStarts);
-    deserialize_value(&data, &length, &mStrides);
+    
+    int start_length, stride_length;
+    deserialize_value(&data, &length, &start_length);
+    deserialize_value(&data, &length, &stride_length);
+    
+    const char *d = static_cast<const char *>(data);
+    float *start_data = (float*)deserToHost<char>(d, start_length * sizeof(float));
+    mStarts = std::vector<float>(&start_data[0], &start_data[0]+start_length);
+    float *stride_data = (float*)deserToHost<char>(d, stride_length * sizeof(float));
+    mStrides = std::vector<float>(&stride_data[0], &stride_data[0]+stride_length);
 }
 
 nvinfer1::IPluginV2DynamicExt *MeshGridPluginDynamic::clone() const
@@ -151,6 +159,40 @@ int MeshGridPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc, 
                 break;
             }
         }
+    }else{
+        int num_output = getNbOutputs();
+        for(int i=0; i<num_output; ++i){
+            auto &output_dims = outputDesc[i].dims;
+            auto data_type = outputDesc[i].type;
+            float start = mStarts[i];
+            float stride = mStrides[i];
+
+            switch(data_type){
+            case nvinfer1::DataType::kFLOAT:
+                amirstan::plugin::arange_mesh_grid<float>((float *)outputs[i],
+                                        &(output_dims.d[0]), output_dims.nbDims,
+                                        i, start, stride,
+                                        stream);
+                break;
+
+            case nvinfer1::DataType::kHALF:
+                amirstan::plugin::arange_mesh_grid<half>((half *)outputs[i],
+                                        &(output_dims.d[0]), output_dims.nbDims,
+                                        i, start, stride,
+                                        stream);
+                break;
+
+            case nvinfer1::DataType::kINT32:
+                amirstan::plugin::arange_mesh_grid<int>((int *)outputs[i],
+                                        &(output_dims.d[0]), output_dims.nbDims,
+                                        i, start, stride,
+                                        stream);
+                break;
+            default:
+                return 1;
+                break;
+            }
+        }
     }
 
     return 0;
@@ -194,7 +236,9 @@ size_t MeshGridPluginDynamic::getSerializationSize() const
 {
     return sizeof(mNumInputs)
             + sizeof(mSliceDims)
-            + sizeof(mStarts)
+            + sizeof(int)*2
+            + mStarts.size() * sizeof(float)
+            + mStrides.size() * sizeof(float)
             + sizeof(mStrides);
 }
 
@@ -202,8 +246,16 @@ void MeshGridPluginDynamic::serialize(void *buffer) const
 {
     serialize_value(&buffer, mNumInputs);
     serialize_value(&buffer, mSliceDims);
-    serialize_value(&buffer, mStarts);
-    serialize_value(&buffer, mStrides);
+
+    int start_length = mStarts.size();
+    int stride_length = mStrides.size();
+    serialize_value(&buffer, start_length);
+    serialize_value(&buffer, stride_length);
+
+    char *d = static_cast<char *>(buffer);
+    serFromHost(d, mStarts.data(), start_length);
+    serFromHost(d, mStrides.data(), stride_length);
+    
 }
 
 void MeshGridPluginDynamic::destroy()
@@ -251,10 +303,8 @@ IPluginV2 *MeshGridPluginDynamicCreator::createPlugin(const char *name, const Pl
     int numInputs=0;
     nvinfer1::Dims sliceDims;
     sliceDims.nbDims=0;
-    nvinfer1::Dims starts;
-    starts.nbDims=0;
-    nvinfer1::Dims strides;
-    strides.nbDims=0;
+    std::vector<float> starts;
+    std::vector<float> strides;
 
     for (int i = 0; i < fc->nbFields; i++)
     {
@@ -276,14 +326,16 @@ IPluginV2 *MeshGridPluginDynamicCreator::createPlugin(const char *name, const Pl
 
         if (field_name.compare("starts") == 0)
         {
-            starts.nbDims = fc->fields[i].length;
-            memcpy(&(starts.d[0]), static_cast<const int *>(fc->fields[i].data), fc->fields[i].length*sizeof(int));
+            int data_size= fc->fields[i].length;
+            const float* data_start = static_cast<const float *>(fc->fields[i].data);
+            starts = std::vector<float>(data_start, data_start+data_size);
         }
 
         if (field_name.compare("strides") == 0)
         {
-            strides.nbDims = fc->fields[i].length;
-            memcpy(&(strides.d[0]), static_cast<const int *>(fc->fields[i].data), fc->fields[i].length*sizeof(int));
+            int data_size= fc->fields[i].length;
+            const float* data_start = static_cast<const float *>(fc->fields[i].data);
+            strides = std::vector<float>(data_start, data_start+data_size);
         }
 
     }

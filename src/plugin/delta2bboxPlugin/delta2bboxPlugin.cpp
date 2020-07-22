@@ -217,8 +217,8 @@ void Delta2BBoxPluginDynamic::terminate()
 
 size_t Delta2BBoxPluginDynamic::getSerializationSize() const
 {
-    return mTargetMeans.size() * sizeof(int) +
-            mTargetStds.size() * sizeof(int) +
+    return mTargetMeans.size() * sizeof(float) +
+            mTargetStds.size() * sizeof(float) +
            sizeof(mUseSigmoidCls) +
            sizeof(mMinNumBBox) + 
            sizeof(mNumClasses);
