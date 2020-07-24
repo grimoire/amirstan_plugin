@@ -21,6 +21,7 @@ set(PLUGIN_LIST deformableConvPlugin
                 deformablePoolPlugin
                 adaptivePoolPlugin
                 meshGridPlugin
+                carafeFeatureReassemblePlugin
                 )
 
 set(INFER_PLUGIN_SRC InferPlugin.cpp

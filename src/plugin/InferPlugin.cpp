@@ -14,6 +14,7 @@
 #include "plugin/torchGatherPlugin/torchGatherPlugin.h"
 #include "plugin/adaptivePoolPlugin/adaptivePoolPlugin.h"
 #include "plugin/meshGridPlugin/meshGridPlugin.h"
+#include "plugin/carafeFeatureReassemblePlugin/carafeFeatureReassemblePlugin.h"
 
 
 extern "C"
