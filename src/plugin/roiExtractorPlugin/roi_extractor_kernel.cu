@@ -79,11 +79,16 @@ namespace plugin
                                     const int pw, const int ph, const int c,
                                     const int sample_num, const int channels,
                                     const int height, const int width,
-                                    const int pooled_height, const int pooled_width) {
+                                    const int pooled_height, const int pooled_width,
+                                    const bool aligned) {
     
         // Force malformed ROIs to be 1x1
-        const scalar_t roi_width = fmaxf((scalar_t)roi_end_w - roi_start_w, 0.);
-        const scalar_t roi_height = fmaxf((scalar_t)roi_end_h - roi_start_h, 0.);
+        scalar_t roi_width = fmaxf((scalar_t)roi_end_w - (scalar_t)roi_start_w, 0.);
+        scalar_t roi_height = fmaxf((scalar_t)roi_end_h - (scalar_t)roi_start_h, 0.);
+        if (!aligned) {
+          roi_width = max(roi_width, (scalar_t)1.);
+          roi_height = max(roi_height, (scalar_t)1.);
+        }
     
         const scalar_t bin_size_h = roi_height / pooled_height;
         const scalar_t bin_size_w = roi_width / pooled_width;
@@ -125,7 +130,8 @@ namespace plugin
         const scalar_t *bottom_rois,
         FeatData feat_data,
         const int sample_num, const float roi_scale_factor, const int finest_scale,
-        const int pooled_height, const int pooled_width, 
+        const int pooled_height, const int pooled_width,
+        const bool aligned, 
         int nThreads){
         CUDA_KERNEL_LOOP(index, nThreads){
             const int channels = feat_data.channels;
@@ -163,10 +169,11 @@ namespace plugin
             const scalar_t *bottom_data = (scalar_t*)feat_data.data[target_lvls];
 
             const int roi_batch_ind = offset_bottom_rois[0];
-            const scalar_t roi_start_w = roi_offset_x0 * spatial_scale;
-            const scalar_t roi_start_h = roi_offset_y0 * spatial_scale;
-            const scalar_t roi_end_w = (roi_offset_x1 + 1) * spatial_scale;
-            const scalar_t roi_end_h = (roi_offset_y1 + 1) * spatial_scale;
+            const scalar_t offset = aligned ? (scalar_t)0.5 : (scalar_t)0.0;
+            const scalar_t roi_start_w = roi_offset_x0 * spatial_scale - offset;
+            const scalar_t roi_start_h = roi_offset_y0 * spatial_scale - offset;
+            const scalar_t roi_end_w = (roi_offset_x1) * spatial_scale - offset;
+            const scalar_t roi_end_h = (roi_offset_y1) * spatial_scale - offset;
 
             const scalar_t output_val = roi_align_single<scalar_t>(bottom_data,
                                         roi_batch_ind,
@@ -178,7 +185,8 @@ namespace plugin
                                         pw, ph, c,
                                         sample_num, channels,
                                         height, width,
-                                        pooled_height, pooled_width);
+                                        pooled_height, pooled_width,
+                                        aligned);
 
             output[index] = output_val;
         }
@@ -213,11 +221,13 @@ namespace plugin
         int pooled_height = out_size;
         int pooled_width = out_size;
         int nThreads = num_rois * c * pooled_height * pooled_width;
+        bool aligned = true;
         roi_extractor_kernel<T><<<GET_BLOCKS(nThreads), CUDA_NUM_THREADS,0,stream>>>(
             output, rois,
             feat_data,
             sample_num, roi_scale_factor, finest_scale, 
-            pooled_height, pooled_width, 
+            pooled_height, pooled_width,
+            aligned,
             nThreads);
     }
 

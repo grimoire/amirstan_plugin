@@ -20,7 +20,8 @@
 template <typename T_BBOX>
 __device__ T_BBOX bboxSize(
     const Bbox<T_BBOX>& bbox,
-    const bool normalized)
+    const bool normalized,
+    T_BBOX offset)
 {
     if (bbox.xmax < bbox.xmin || bbox.ymax < bbox.ymin)
     {
@@ -38,7 +39,7 @@ __device__ T_BBOX bboxSize(
         else
         {
             // If bbox is not within range [0, 1].
-            return (width + 1) * (height + 1);
+            return (width + offset) * (height + offset);
         }
     }
 }
@@ -70,7 +71,8 @@ template <typename T_BBOX>
 __device__ float jaccardOverlap(
     const Bbox<T_BBOX>& bbox1,
     const Bbox<T_BBOX>& bbox2,
-    const bool normalized)
+    const bool normalized,
+    T_BBOX offset)
 {
     Bbox<T_BBOX> intersect_bbox;
     intersectBbox(bbox1, bbox2, &intersect_bbox);
@@ -82,14 +84,14 @@ __device__ float jaccardOverlap(
     }
     else
     {
-        intersect_width = intersect_bbox.xmax - intersect_bbox.xmin + 1;
-        intersect_height = intersect_bbox.ymax - intersect_bbox.ymin + 1;
+        intersect_width = intersect_bbox.xmax - intersect_bbox.xmin + offset;
+        intersect_height = intersect_bbox.ymax - intersect_bbox.ymin + offset;
     }
     if (intersect_width > 0 && intersect_height > 0)
     {
         float intersect_size = intersect_width * intersect_height;
-        float bbox1_size = bboxSize(bbox1, normalized);
-        float bbox2_size = bboxSize(bbox2, normalized);
+        float bbox1_size = bboxSize(bbox1, normalized, offset);
+        float bbox2_size = bboxSize(bbox2, normalized, offset);
         return intersect_size / (bbox1_size + bbox2_size - intersect_size);
     }
     else
@@ -200,7 +202,7 @@ __global__ void allClassNMS_kernel(
                 if ((kept_bboxinfo_flag[cur_idx]) && (item_idx > ref_item_idx))
                 {
                     // TODO: may need to add bool normalized as argument, HERE true means normalized
-                    if (jaccardOverlap(ref_bbox, loc_bbox[t], isNormalized) > nms_threshold)
+                    if (jaccardOverlap(ref_bbox, loc_bbox[t], isNormalized, T_BBOX(0)) > nms_threshold)
                     {
                         kept_bboxinfo_flag[cur_idx] = false;
                     }

@@ -87,8 +87,8 @@ namespace plugin
       const int anchor_start = out_bbox_id;
       const T px = (anchor[anchor_start]+anchor[anchor_start+2])*0.5;
       const T py = (anchor[anchor_start+1]+anchor[anchor_start+3])*0.5;
-      const T pw = anchor[anchor_start+2]-anchor[anchor_start] + 1;
-      const T ph = anchor[anchor_start+3]-anchor[anchor_start+1] + 1;
+      const T pw = anchor[anchor_start+2]-anchor[anchor_start];
+      const T ph = anchor[anchor_start+3]-anchor[anchor_start+1];
 
       const T gw = pw*exp(dw);
       const T gh = ph*exp(dh);
@@ -96,10 +96,10 @@ namespace plugin
       const T gx = px + pw * dx;
       const T gy = py + ph * dy;
 
-      const T x1 = gx - gw * 0.5 + 0.5;
-      const T y1 = gy - gh * 0.5 + 0.5;
-      const T x2 = gx + gw * 0.5 - 0.5;
-      const T y2 = gy + gh * 0.5 - 0.5;
+      const T x1 = gx - gw * 0.5;
+      const T y1 = gy - gh * 0.5;
+      const T x2 = gx + gw * 0.5;
+      const T y2 = gy + gh * 0.5;
 
       if(clip_range!=nullptr){
         out_bbox[out_bbox_id] = max(T(0.), min(x1, T(clip_range[1])));
