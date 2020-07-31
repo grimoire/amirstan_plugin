@@ -15,6 +15,7 @@
 #include "plugin/adaptivePoolPlugin/adaptivePoolPlugin.h"
 #include "plugin/meshGridPlugin/meshGridPlugin.h"
 #include "plugin/carafeFeatureReassemblePlugin/carafeFeatureReassemblePlugin.h"
+#include "plugin/gridSamplePlugin/gridSamplePlugin.h"
 
 
 extern "C"
