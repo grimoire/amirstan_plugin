@@ -47,6 +47,9 @@ GroupNormPluginDynamic::GroupNormPluginDynamic(
     mBhost = std::shared_ptr<char>(new char[mNumParamsB * wordSize]);
     memcpy((void *)mBhost.get(), mB.values, mNumParamsB * wordSize);
     mB.values = mBhost.get();
+    mWdev=nullptr;
+    mBdev=nullptr;
+    initialize();
 }
 
 GroupNormPluginDynamic::GroupNormPluginDynamic(const std::string name, const void *data, size_t length)
@@ -75,6 +78,9 @@ GroupNormPluginDynamic::GroupNormPluginDynamic(const std::string name, const voi
 
     mW.count = mNumParamsW;
     mB.count = mNumParamsB;
+
+    mWdev=nullptr;
+    mBdev=nullptr;
     initialize();
 }
 
@@ -192,15 +198,19 @@ int GroupNormPluginDynamic::initialize()
 
         if (true)
         {
-            size_t nbWBytes = mW.count * wordSize;
-            mW.type = nvinfer1::DataType::kFLOAT;
-            CHECK(cudaMalloc((void **)&mWdev, nbWBytes));   
-            convertAndCopyToDevice(mW, reinterpret_cast<float *>(mWdev));
+            if(mWdev == nullptr){
+                size_t nbWBytes = mW.count * wordSize;
+                mW.type = nvinfer1::DataType::kFLOAT;
+                CHECK(cudaMalloc((void **)&mWdev, nbWBytes));   
+                convertAndCopyToDevice(mW, reinterpret_cast<float *>(mWdev));
+            }
 
-            size_t nbBBytes = mB.count * wordSize;
-            mB.type = nvinfer1::DataType::kFLOAT; 
-            CHECK(cudaMalloc((void **)&mBdev, nbBBytes));
-            convertAndCopyToDevice(mB, reinterpret_cast<float *>(mBdev));
+            if(mBdev == nullptr){
+                size_t nbBBytes = mB.count * wordSize;
+                mB.type = nvinfer1::DataType::kFLOAT; 
+                CHECK(cudaMalloc((void **)&mBdev, nbBBytes));
+                convertAndCopyToDevice(mB, reinterpret_cast<float *>(mBdev));
+            }
         }        
         
     }
@@ -212,8 +222,14 @@ void GroupNormPluginDynamic::terminate()
 {
     gLogVerbose << "FC Plugin terminate start" << std::endl;
 
-    cudaFree(mWdev);
-    cudaFree(mBdev);
+    if(mWdev!=nullptr){
+        cudaFree(mWdev);
+        mWdev = nullptr;
+    }
+    if(mBdev!=nullptr){
+        cudaFree(mBdev);
+        mBdev = nullptr;
+    }
 
     gLogVerbose << "FC Plugin terminate done" << std::endl;
 }

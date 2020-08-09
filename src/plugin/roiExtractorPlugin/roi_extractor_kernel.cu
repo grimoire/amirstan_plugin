@@ -119,7 +119,7 @@ namespace plugin
             output_val += val;
           }
         }
-        output_val /= (sample_num_h * sample_num_w);
+        output_val /= max(sample_num_h * sample_num_w, 1);
         
         return output_val;
     }

@@ -74,6 +74,7 @@ private:
     int mNumBaseAnchor;
     std::shared_ptr<float> mHostBaseAnchor;
     float* mDevBaseAnchor;
+    bool mIsInitialed;
 
 protected:
     // To prevent compiler warnings.

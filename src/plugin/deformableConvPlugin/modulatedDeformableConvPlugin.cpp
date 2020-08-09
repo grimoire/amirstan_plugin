@@ -58,6 +58,9 @@ ModulatedDeformableConvPluginDynamic::ModulatedDeformableConvPluginDynamic(
     mBhost = std::shared_ptr<char>(new char[mNumParamsB * wordSize]);
     memcpy((void *)mBhost.get(), mB.values, mB.count * wordSize);
     mB.values = mBhost.get();
+    mWdev=nullptr;
+    mBdev=nullptr;
+    initialize();
 }
 
 ModulatedDeformableConvPluginDynamic::ModulatedDeformableConvPluginDynamic(const std::string name, const void *data, size_t length)
@@ -95,7 +98,9 @@ ModulatedDeformableConvPluginDynamic::ModulatedDeformableConvPluginDynamic(const
     mB.count = mNumParamsB;
     mB.type = mType;
     // mW.values = nullptr;
-    // initialize();
+    mWdev=nullptr;
+    mBdev=nullptr;
+    initialize();
 }
 
 void ModulatedDeformableConvPluginDynamic::setStrideNd(nvinfer1::Dims stride)
@@ -318,7 +323,7 @@ int ModulatedDeformableConvPluginDynamic::getNbOutputs() const
 int ModulatedDeformableConvPluginDynamic::initialize()
 {
     cublasCreate(&m_cublas_handle);
-    if (mW.values)
+    if (mW.values && mWdev == nullptr)
     {
         // target size
         size_t wordSize = samplesCommon::getElementSize(mType);
@@ -333,7 +338,7 @@ int ModulatedDeformableConvPluginDynamic::initialize()
         mWdev=nullptr;
     }
 
-    if (mB.values)
+    if (mB.values && mBdev == nullptr)
     {
         // target size
         size_t wordSize = samplesCommon::getElementSize(mType);
@@ -355,9 +360,15 @@ void ModulatedDeformableConvPluginDynamic::terminate()
 {
     gLogVerbose << "DCN Plugin terminate start" << std::endl;
 
-    cudaFree(mWdev);
-    cudaFree(mBdev);
-    cublasDestroy(m_cublas_handle);
+    if(mWdev!=nullptr){
+        cudaFree(mWdev);
+        mWdev=nullptr;
+    }
+    if(mBdev!=nullptr){
+        cudaFree(mBdev);
+        mBdev=nullptr;
+    }
+        cublasDestroy(m_cublas_handle);
 
     gLogVerbose << "DCN Plugin terminate done" << std::endl;
 }

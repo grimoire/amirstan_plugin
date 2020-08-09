@@ -45,8 +45,10 @@ GridAnchorDynamicPluginDynamic::GridAnchorDynamicPluginDynamic(
       mCenterX(centerX),
       mCenterY(centerY)
 {
+    mIsInitialed = false;
     mDevBaseAnchor = nullptr;
     generateBaseAnchor();
+    initialize();
 }
 
 
@@ -146,6 +148,7 @@ GridAnchorDynamicPluginDynamic::GridAnchorDynamicPluginDynamic(const std::string
 
     assert((start + getSerializationSize()) == d);
     // mW.values = nullptr;
+    mIsInitialed = false;
     initialize();
 }
 
@@ -255,20 +258,22 @@ int GridAnchorDynamicPluginDynamic::getNbOutputs() const
 
 int GridAnchorDynamicPluginDynamic::initialize()
 {
-    if(mNumBaseAnchor>0){
+    if(mNumBaseAnchor>0 && (!mIsInitialed)){
         size_t nbBytes = mNumBaseAnchor * 4 * sizeof(float);
         CHECK(cudaMalloc((void **)&mDevBaseAnchor, nbBytes));
         CHECK(cudaMemcpy((void*)mDevBaseAnchor, (void*)mHostBaseAnchor.get(), nbBytes, cudaMemcpyHostToDevice));
+        mIsInitialed=true;
     }
     return 0;
 }
 
 void GridAnchorDynamicPluginDynamic::terminate()
 {
-    if(mDevBaseAnchor!=nullptr)
+    if(mDevBaseAnchor!=nullptr && mIsInitialed)
     {
         cudaFree(mDevBaseAnchor);
         mDevBaseAnchor = nullptr;
+        mIsInitialed = false;
     }
 }
 
