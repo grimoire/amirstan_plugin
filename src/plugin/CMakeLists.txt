@@ -23,6 +23,7 @@ set(PLUGIN_LIST deformableConvPlugin
                 meshGridPlugin
                 carafeFeatureReassemblePlugin
                 gridSamplePlugin
+                torchFlipPlugin
                 )
 
 set(INFER_PLUGIN_SRC InferPlugin.cpp

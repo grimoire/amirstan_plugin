@@ -16,6 +16,7 @@
 #include "plugin/meshGridPlugin/meshGridPlugin.h"
 #include "plugin/carafeFeatureReassemblePlugin/carafeFeatureReassemblePlugin.h"
 #include "plugin/gridSamplePlugin/gridSamplePlugin.h"
+#include "plugin/torchFlipPlugin/torchFlipPlugin.h"
 
 
 extern "C"
