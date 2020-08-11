@@ -24,6 +24,7 @@ set(PLUGIN_LIST deformableConvPlugin
                 carafeFeatureReassemblePlugin
                 gridSamplePlugin
                 torchFlipPlugin
+                torchCumMaxMinPlugin
                 )
 
 set(INFER_PLUGIN_SRC InferPlugin.cpp

@@ -17,6 +17,7 @@
 #include "plugin/carafeFeatureReassemblePlugin/carafeFeatureReassemblePlugin.h"
 #include "plugin/gridSamplePlugin/gridSamplePlugin.h"
 #include "plugin/torchFlipPlugin/torchFlipPlugin.h"
+#include "plugin/torchCumMaxMinPlugin/torchCumMaxMinPlugin.h"
 
 
 extern "C"
