@@ -18,6 +18,7 @@
 #include "plugin/gridSamplePlugin/gridSamplePlugin.h"
 #include "plugin/torchFlipPlugin/torchFlipPlugin.h"
 #include "plugin/torchCumMaxMinPlugin/torchCumMaxMinPlugin.h"
+#include "plugin/torchCumPlugin/torchCumPlugin.h"
 
 
 extern "C"
