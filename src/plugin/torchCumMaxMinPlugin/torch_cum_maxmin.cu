@@ -14,9 +14,8 @@ namespace plugin
 {
   using namespace amirstan::cuda;
 
-  static const int DATA_PER_THREAD=1;
   static const int CUDA_WARP_SIZE=32;
-  static const int CUDA_NUM_WARP=CUDA_NUM_THREADS/CUDA_WARP_SIZE;
+  static const int CUDA_NUM_WARP=CUDA_NUM_THREADS/float(CUDA_WARP_SIZE);
 
 
 template<typename T, bool is_max> struct BlockPrefixPairCumCallbackOp;
@@ -77,7 +76,7 @@ __global__ void torch_cum_maxmin_warp_kernel(T* output, int* out_index, const T*
 
     for(int warp_offset = 0; warp_offset<dim_size; warp_offset += CUDA_WARP_SIZE){
       const size_t cum_position = warp_offset + threadIdx.x%CUDA_WARP_SIZE;
-      cub::KeyValuePair<int, T> thread_data = {cum_position, input[cum_start+cum_position*stride]};
+      cub::KeyValuePair<int, T> thread_data = {cum_position, cum_position<dim_size? input[cum_start+cum_position*stride]:0};
       if(cum_type==0){
         thread_data = thread_data.value>aggregate_value.value? thread_data:aggregate_value;
         warpScan(temp_storage.scan[int(threadIdx.x/CUDA_WARP_SIZE)]).InclusiveScan(thread_data, thread_data, cub::ArgMax(), aggregate_value);
@@ -97,68 +96,6 @@ __global__ void torch_cum_maxmin_warp_kernel(T* output, int* out_index, const T*
   }
 
 }
-
-  template <typename T>
-  __global__ void torch_cum_maxmin_kernel(T* output, int* out_index, const T* input,
-                                          size_t stride, int dim_size, size_t cum_size
-                                        ,const int cum_type){
-    
-    // create block scan
-    typedef cub::BlockScan<cub::KeyValuePair<int, T>, CUDA_NUM_THREADS> BlockScan;
-    __shared__ union {
-      typename BlockScan::TempStorage     scan;
-    } temp_storage;
-
-    for (int index = blockIdx.x; index < cum_size; index += gridDim.x){
-      // compute cum start
-      const size_t pre_index = index/stride;
-      const size_t post_index = index%stride;
-
-      const size_t cum_start = pre_index*stride*dim_size + post_index;
-
-      cub::KeyValuePair<int, T> init_pair{0, input[cum_start]};
-      
-      BlockPrefixPairCumCallbackOp<T, true> max_prefix_op(init_pair);
-      BlockPrefixPairCumCallbackOp<T, false> min_prefix_op(init_pair);
-
-
-      for (int block_offset = 0; block_offset < dim_size; block_offset += CUDA_NUM_THREADS * DATA_PER_THREAD)
-      {
-          // Load a segment of consecutive items that are blocked across threads
-          cub::KeyValuePair<int, T> thread_data[DATA_PER_THREAD];
-          #pragma unroll
-          for(int i=0;i<DATA_PER_THREAD;++i){
-              const size_t cum_position = block_offset + threadIdx.x + i;
-              thread_data[i].key = cum_position;
-              thread_data[i].value = input[cum_start+cum_position*stride];
-          }
-          // BlockLoad(temp_storage.load).Load(input + block_offset, thread_data);
-          
-          cub::CTA_SYNC();
-          // Collectively compute the block-wide inclusive prefix max scan
-          if(cum_type==0){
-            BlockScan(temp_storage.scan).InclusiveScan(
-                thread_data, thread_data, cub::ArgMax(), max_prefix_op);
-          }else{
-            BlockScan(temp_storage.scan).InclusiveScan(
-                thread_data, thread_data, cub::ArgMin(), min_prefix_op);
-          }
-          cub::CTA_SYNC();
-          // Store scanned items to output segment
-          #pragma unroll
-          for(int i=0;i<DATA_PER_THREAD;++i){
-              const size_t cum_position = block_offset + threadIdx.x + i;
-              if(cum_position<dim_size){
-                output[cum_start+cum_position*stride] = thread_data[i].value;
-                out_index[cum_start+cum_position*stride] = thread_data[i].key;
-              }
-          }
-          cub::CTA_SYNC();
-      }
-
-    }
-
-  }
 
   static void create_size_stride(const int* dims, int nb_dims, TensorSize &size, TensorStride& stride){
         memcpy(&size.size[0], dims, sizeof(int)*nb_dims);
@@ -186,13 +123,10 @@ __global__ void torch_cum_maxmin_warp_kernel(T* output, int* out_index, const T*
       }
     }
 
-    // torch_cum_maxmin_kernel<T><<<GET_BLOCKS(cum_size), CUDA_NUM_THREADS, 0, stream>>>(output, index, input, 
-    //                                                                                   input_stride.size[cum_dim], ts_input_size.size[cum_dim], cum_size,
-    //                                                                                   cum_type);
-
-    torch_cum_maxmin_warp_kernel<T><<<GET_BLOCKS(cum_size/CUDA_WARP_SIZE+1), CUDA_NUM_THREADS, 0, stream>>>(output, index, input, 
-                                                                                      input_stride.size[cum_dim], ts_input_size.size[cum_dim], cum_size,
-                                                                                      cum_type);
+    size_t num_blocks = std::min<long>(kMaxGridNum,(cum_size+CUDA_NUM_WARP-1)/CUDA_NUM_WARP);
+    torch_cum_maxmin_warp_kernel<T><<<num_blocks, CUDA_NUM_THREADS, 0, stream>>>(output, index, input, 
+                                                                                  input_stride.size[cum_dim], ts_input_size.size[cum_dim], cum_size,
+                                                                                  cum_type);
 
   }
 
