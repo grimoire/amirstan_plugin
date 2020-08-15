@@ -14,9 +14,6 @@ namespace plugin
 {
   using namespace amirstan::cuda;
 
-  static const int CUDA_WARP_SIZE=32;
-  static const int CUDA_NUM_WARP=CUDA_NUM_THREADS/float(CUDA_WARP_SIZE);
-
 
 template<typename T, bool is_max> struct BlockPrefixPairCumCallbackOp;
 

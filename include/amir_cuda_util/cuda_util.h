@@ -19,6 +19,8 @@ namespace cuda
   }
   
 const int CUDA_NUM_THREADS = 512;
+const int CUDA_WARP_SIZE=32;
+const int CUDA_NUM_WARP=CUDA_NUM_THREADS/float(CUDA_WARP_SIZE);
 const int kMaxGridNum = 65535;
 inline int GET_BLOCKS(const int N)
 {
