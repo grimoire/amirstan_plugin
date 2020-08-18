@@ -38,6 +38,11 @@ add_subdirectory(${PLUGIN_NAME})
 set(INFER_PLUGIN_LIB ${INFER_PLUGIN_LIB} ${PLUGIN_NAME}_static)
 endforeach()
 
+if (WITH_DEEPSTREAM)                                                                                                        
+    MESSAGE(STATUS "Adding NvDsInferParseMmdet")
+    set(INFER_PLUGIN_LIB ${INFER_PLUGIN_LIB} nvinfer_plugin)
+    set(INFER_PLUGIN_SRC ${INFER_PLUGIN_SRC} NvDsInferParseMmdet.cpp)
+endif ()
 
 cuda_add_library(${SHARED_TARGET} SHARED ${INFER_PLUGIN_SRC})
 target_link_libraries(${SHARED_TARGET} ${INFER_PLUGIN_LIB})
