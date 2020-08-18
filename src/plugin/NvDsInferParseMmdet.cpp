@@ -2,6 +2,8 @@
 #include <iostream>
 #include "nvdsinfer_custom_impl.h"
 
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+
 
 /* This is a sample bounding box parsing function for the mmdetection
  * detector models converted to TensorRT with https://github.com/grimoire/mmdetection-to-tensorrt. */
@@ -13,24 +15,11 @@ bool NvDsInferParseMmdet (std::vector<NvDsInferLayerInfo> const &outputLayersInf
         NvDsInferParseDetectionParams const &detectionParams,
         std::vector<NvDsInferParseObjectInfo> &objectList)
 {
-  static int numDetectionsIndex = -1;
   static int boxesLayerIndex = -1;
   static int scoresLayerIndex = -1;
   static int classesLayerIndex = -1;
-
-  /* Find the num_detections layer */
-  if (numDetectionsIndex == -1) {
-    for (unsigned int i = 0; i < outputLayersInfo.size(); i++) {
-      if (strcmp(outputLayersInfo[i].layerName, "num_detections") == 0) {
-        numDetectionsIndex = i;
-        break;
-      }
-    }
-    if (numDetectionsIndex == -1) {
-      std::cerr << "Could not find num_detections layer buffer while parsing" << std::endl;
-      return false;
-    }
-  }
+  static NvDsInferDimsCHW scoresLayerDims;
+  int numDetsToParse;
 
   /* Find the boxes layer */
   if (boxesLayerIndex == -1) {
@@ -51,6 +40,7 @@ bool NvDsInferParseMmdet (std::vector<NvDsInferLayerInfo> const &outputLayersInf
     for (unsigned int i = 0; i < outputLayersInfo.size(); i++) {
       if (strcmp(outputLayersInfo[i].layerName, "scores") == 0) {
         scoresLayerIndex = i;
+        getDimsCHWFromDims(scoresLayerDims, outputLayersInfo[i].dims);
         break;
       }
     }
@@ -77,7 +67,7 @@ bool NvDsInferParseMmdet (std::vector<NvDsInferLayerInfo> const &outputLayersInf
   float *bboxes = (float *) outputLayersInfo[boxesLayerIndex].buffer;
   float *classes = (float *) outputLayersInfo[classesLayerIndex].buffer;
   float *scores = (float *) outputLayersInfo[scoresLayerIndex].buffer;
-  int numDetsToParse = *((int *) outputLayersInfo[numDetectionsIndex].buffer);
+  numDetsToParse = scoresLayerDims.c;
 
   for (int indx = 0; indx < numDetsToParse; indx++)
   {
