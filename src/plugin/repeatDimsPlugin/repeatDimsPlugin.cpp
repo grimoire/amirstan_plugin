@@ -49,20 +49,24 @@ nvinfer1::IPluginV2DynamicExt *RepeatDimsPluginDynamic::clone() const
 nvinfer1::DimsExprs RepeatDimsPluginDynamic::getOutputDimensions(
     int outputIndex, const nvinfer1::DimsExprs *inputs, int nbInputs, nvinfer1::IExprBuilder &exprBuilder)
 {
-    assert(nbInputs == 1);
+    // assert(nbInputs == 1);
     DimsExprs outputDims;
     
-    outputDims.nbDims = mRepeatDims.nbDims;
-    int dim_offset = mRepeatDims.nbDims - inputs[0].nbDims;
-    
-    for(int i=0; i<dim_offset; ++i){
-        outputDims.d[i] = exprBuilder.constant(mRepeatDims.d[i]);
-    }
+    if(nbInputs==1){
+        outputDims.nbDims = mRepeatDims.nbDims;
+        int dim_offset = mRepeatDims.nbDims - inputs[0].nbDims;
+        
+        for(int i=0; i<dim_offset; ++i){
+            outputDims.d[i] = exprBuilder.constant(mRepeatDims.d[i]);
+        }
 
-    for(int i=0; i<inputs[0].nbDims; ++i){
-        outputDims.d[i+dim_offset] = exprBuilder.operation(nvinfer1::DimensionOperation::kPROD, 
-        *(inputs[0].d[i]),
-        *(exprBuilder.constant(mRepeatDims.d[i+dim_offset])));
+        for(int i=0; i<inputs[0].nbDims; ++i){
+            outputDims.d[i+dim_offset] = exprBuilder.operation(nvinfer1::DimensionOperation::kPROD, 
+            *(inputs[0].d[i]),
+            *(exprBuilder.constant(mRepeatDims.d[i+dim_offset])));
+        }
+    }else{
+        outputDims = inputs[1];
     }
 
     return outputDims;
@@ -70,7 +74,7 @@ nvinfer1::DimsExprs RepeatDimsPluginDynamic::getOutputDimensions(
 
 bool RepeatDimsPluginDynamic::supportsFormatCombination(int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs, int nbOutputs)
 {
-    assert(0 <= pos && pos < 2);
+    // assert(0 <= pos && pos < 2);
     const auto *in = inOut;
     const auto *out = inOut + nbInputs;
     switch (pos)
@@ -80,8 +84,17 @@ bool RepeatDimsPluginDynamic::supportsFormatCombination(int pos, const nvinfer1:
         || (in[0].type == nvinfer1::DataType::kHALF && in[0].format == nvinfer1::TensorFormat::kCHW16)
         ||(in[0].type == nvinfer1::DataType::kINT32 && in[0].format == nvinfer1::TensorFormat::kLINEAR);
     case 1:
+        if(nbInputs==1){
+            return out[0].type == in[0].type &&
+                out[0].format == in[0].format;
+        }else{
+            return (in[1].type == nvinfer1::DataType::kFLOAT && in[1].format == nvinfer1::TensorFormat::kLINEAR)
+        || (in[1].type == nvinfer1::DataType::kHALF && in[1].format == nvinfer1::TensorFormat::kCHW16)
+        ||(in[1].type == nvinfer1::DataType::kINT32 && in[1].format == nvinfer1::TensorFormat::kLINEAR);
+        }
+    case 2:
         return out[0].type == in[0].type &&
-               out[0].format == in[0].format;
+            out[0].format == in[0].format;
     }
 }
 
@@ -90,7 +103,7 @@ void RepeatDimsPluginDynamic::configurePlugin(
 {
     // Validate input arguments
     assert(nbOutputs == 1);
-    assert(nbInputs == 1);
+    // assert(nbInputs == 1);
 }
 
 size_t RepeatDimsPluginDynamic::getWorkspaceSize(
@@ -103,13 +116,27 @@ int RepeatDimsPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc
                                     const void *const *inputs, void *const *outputs, void *workSpace, cudaStream_t stream)
 {
     nvinfer1::Dims input_dims;
-    input_dims.nbDims = mRepeatDims.nbDims;
-    int nb_offset = input_dims.nbDims - (inputDesc->dims).nbDims;
+    nvinfer1::Dims repeat_dims;
+
+    if(mRepeatDims.nbDims!=0){
+        repeat_dims = mRepeatDims;
+    }else{
+        repeat_dims = inputDesc[1].dims;
+        int nb_offset = repeat_dims.nbDims - inputDesc[0].dims.nbDims;
+        for(int i=nb_offset;i<repeat_dims.nbDims;++i){
+            if(inputDesc[0].dims.d[i-nb_offset]!=1){
+                repeat_dims.d[i]=1;
+            }
+        }
+    }
+    
+    input_dims.nbDims = repeat_dims.nbDims;
+    int nb_offset = input_dims.nbDims - (inputDesc[0].dims).nbDims;
     for(int i=0;i< nb_offset;++i){
         input_dims.d[i] = 1;
     }
-    for(int i=0;i<(inputDesc->dims).nbDims; ++i){
-        input_dims.d[i+nb_offset] = (inputDesc->dims).d[i];
+    for(int i=0;i<(inputDesc[0].dims).nbDims; ++i){
+        input_dims.d[i+nb_offset] = (inputDesc[0].dims).d[i];
     }
 
     auto data_type = inputDesc[0].type;
@@ -117,19 +144,19 @@ int RepeatDimsPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc
     switch(data_type){
     case nvinfer1::DataType::kFLOAT:
         amirstan::cuda::repeat_dims<float>((float*)outputs[0], (float*)inputs[0], 
-        &(input_dims.d[0]), &mRepeatDims.d[0], input_dims.nbDims,
+        &(input_dims.d[0]), &repeat_dims.d[0], input_dims.nbDims,
         stream);
         break;
 
     case nvinfer1::DataType::kHALF:
         amirstan::cuda::repeat_dims<half>((half*)outputs[0], (half*)inputs[0], 
-        &(input_dims.d[0]), &mRepeatDims.d[0], input_dims.nbDims,
+        &(input_dims.d[0]), &repeat_dims.d[0], input_dims.nbDims,
         stream);
         break;
 
     case nvinfer1::DataType::kINT32:
         amirstan::cuda::repeat_dims<int>((int*)outputs[0], (int*)inputs[0], 
-        &(input_dims.d[0]), &mRepeatDims.d[0], input_dims.nbDims,
+        &(input_dims.d[0]), &repeat_dims.d[0], input_dims.nbDims,
         stream);
         break;
     default:
@@ -141,7 +168,7 @@ int RepeatDimsPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc
 
 nvinfer1::DataType RepeatDimsPluginDynamic::getOutputDataType(int index, const nvinfer1::DataType *inputTypes, int nbInputs) const
 {
-    assert(nbInputs == 1);
+    // assert(nbInputs == 1);
     return inputTypes[0];
 }
 
