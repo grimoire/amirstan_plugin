@@ -15,11 +15,15 @@ endif()
 INCLUDE_DIRECTORIES(/usr/local/cuda/include)
 
 # cub
-set(CUB_ROOT_DIR "$ENV{HOME}/SDK/cub-1.8.0/")
+if (NOT DEFINED CUB_ROOT_DIR)
+  set(CUB_ROOT_DIR "$ENV{HOME}/SDK/cub-1.8.0/")
+endif()
 INCLUDE_DIRECTORIES(${CUB_ROOT_DIR})
 
 # tensorrt
-set(TENSORRT_ROOT "$ENV{HOME}/SDK/TensorRT-7.1.3.4")
+if (NOT DEFINED TENSORRT_ROOT)
+  set(TENSORRT_ROOT "$ENV{HOME}/SDK/TensorRT-7.1.3.4")
+endif()
 find_path(TENSORRT_INCLUDE_DIR NvInfer.h
         HINTS ${TENSORRT_ROOT} ${CUDA_TOOLKIT_ROOT_DIR}
         PATH_SUFFIXES include)
@@ -44,8 +48,7 @@ if(NOT TENSORRT_FOUND)
     message(ERROR
             "Cannot find TensorRT library.")
 endif()
-INCLUDE_DIRECTORIES(${TENSORRT_ROOT}/include)
-
+INCLUDE_DIRECTORIES(${TENSORRT_INCLUDE_DIR})
 
 # DeepStream
 if (NOT DEFINED WITH_DEEPSTREAM)
