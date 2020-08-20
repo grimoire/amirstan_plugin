@@ -80,7 +80,7 @@ nvinfer1::DimsExprs BatchedNMSPlugin::getOutputDimensions(
     nvinfer1::DimsExprs ret; 
     switch(outputIndex){
     case 0:
-        ret.nbDims=1;
+        ret.nbDims=2;
         break;
     case 1:
         ret.nbDims=3;
@@ -94,7 +94,9 @@ nvinfer1::DimsExprs BatchedNMSPlugin::getOutputDimensions(
     }
 
     ret.d[0] = inputs[0].d[0];
-
+    if(outputIndex==0){
+        ret.d[1] = exprBuilder.constant(1);
+    }
     if(outputIndex>0){
         ret.d[1] = exprBuilder.constant(param.keepTopK);
     }
