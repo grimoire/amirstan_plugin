@@ -40,7 +40,7 @@ endforeach()
 
 if (WITH_DEEPSTREAM)                                                                                                        
     MESSAGE(STATUS "Adding NvDsInferParseMmdet")
-    set(INFER_PLUGIN_LIB ${INFER_PLUGIN_LIB} nvinfer_plugin)
+    set(INFER_PLUGIN_LIB ${INFER_PLUGIN_LIB} ${TENSORRT_LIBRARY_INFER_PLUGIN} )
     set(INFER_PLUGIN_SRC ${INFER_PLUGIN_SRC} NvDsInferParseMmdet.cpp)
 endif ()
 

@@ -15,11 +15,26 @@ bool NvDsInferParseMmdet (std::vector<NvDsInferLayerInfo> const &outputLayersInf
         NvDsInferParseDetectionParams const &detectionParams,
         std::vector<NvDsInferParseObjectInfo> &objectList)
 {
+  static int numDetectionLayerIndex = -1;
   static int boxesLayerIndex = -1;
   static int scoresLayerIndex = -1;
   static int classesLayerIndex = -1;
   static NvDsInferDimsCHW scoresLayerDims;
   int numDetsToParse;
+
+  /* Find the num_detections layer */
+  if (numDetectionLayerIndex == -1) {
+    for (unsigned int i = 0; i < outputLayersInfo.size(); i++) {
+      if (strcmp(outputLayersInfo[i].layerName, "num_detections") == 0) {
+        numDetectionLayerIndex = i;
+        break;
+      }
+    }
+    if (numDetectionLayerIndex == -1) {
+      std::cerr << "Could not find num_detection layer buffer while parsing" << std::endl;
+      return false;
+    }
+  }
 
   /* Find the boxes layer */
   if (boxesLayerIndex == -1) {
@@ -67,7 +82,7 @@ bool NvDsInferParseMmdet (std::vector<NvDsInferLayerInfo> const &outputLayersInf
   float *bboxes = (float *) outputLayersInfo[boxesLayerIndex].buffer;
   float *classes = (float *) outputLayersInfo[classesLayerIndex].buffer;
   float *scores = (float *) outputLayersInfo[scoresLayerIndex].buffer;
-  numDetsToParse = scoresLayerDims.c;
+  numDetsToParse = *(int*)(outputLayersInfo[numDetectionLayerIndex].buffer);
 
   for (int indx = 0; indx < numDetsToParse; indx++)
   {
@@ -77,7 +92,7 @@ bool NvDsInferParseMmdet (std::vector<NvDsInferLayerInfo> const &outputLayersInf
     float outputY2 = bboxes[indx * 4 + 3];
     float this_class = classes[indx];
     float this_score = scores[indx];
-    float threshold = detectionParams.perClassThreshold[this_class];
+    float threshold = this_class>=0? detectionParams.perClassThreshold[this_class] : 1.;
 
     if (this_score >= threshold)
     {
