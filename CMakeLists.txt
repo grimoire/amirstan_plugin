@@ -46,6 +46,22 @@ if(NOT TENSORRT_FOUND)
 endif()
 INCLUDE_DIRECTORIES(${TENSORRT_ROOT}/include)
 
+
+# DeepStream
+if (NOT DEFINED WITH_DEEPSTREAM)
+    set(WITH_DEEPSTREAM false)
+endif ()
+MESSAGE(STATUS "WITH_DEEPSTREAM: ${WITH_DEEPSTREAM}")
+
+if (WITH_DEEPSTREAM)
+    if (NOT DEFINED DeepStream_DIR)
+        set(DeepStream_DIR /opt/nvidia/deepstream/deepstream-5.0)
+    endif ()
+    if (DEFINED DeepStream_DIR)
+        include_directories("${DeepStream_DIR}/sources/includes")
+    endif (DEFINED DeepStream_DIR)
+endif()
+
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
 LINK_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
@@ -63,4 +79,6 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+
 add_subdirectory (src)
