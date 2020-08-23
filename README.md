@@ -15,8 +15,8 @@ https://github.com/grimoire/mmdetection-to-tensorrt
 
 ## Installation
 
-Install cub: https://nvlabs.github.io/cub/
-Install tensorrt7: https://developer.nvidia.com/tensorrt
+- Install cub: https://nvlabs.github.io/cub/
+- Install tensorrt7: https://developer.nvidia.com/tensorrt
 
 ```shell
 git clone https://github.com/grimoire/amirstan_plugin.git
