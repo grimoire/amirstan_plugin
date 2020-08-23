@@ -15,14 +15,15 @@ https://github.com/grimoire/mmdetection-to-tensorrt
 
 ## Installation
 
-config CUB_ROOT_DIR / TENSORRT_ROOT or other library in CMakeLists.txt
+Install cub: https://nvlabs.github.io/cub/
+Install tensorrt7: https://developer.nvidia.com/tensorrt
 
 ```shell
 git clone https://github.com/grimoire/amirstan_plugin.git
 cd amirstan_plugin
 mkdir build
 cd build
-cmake ..
+cmake -DCUB_ROOT_DIR=<path_to_cub> -DTENSORRT_DIR=<path_to_tensorrt> ..
 make -j10
 ```
 
