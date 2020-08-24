@@ -84,7 +84,7 @@ namespace plugin
       const T clamp_dw = max(-max_ratio, min(max_ratio, dw));
       const T clamp_dh = max(-max_ratio, min(max_ratio, dh));
 
-      const int anchor_start = out_bbox_id;
+      const int anchor_start = (bbox_id*num_ratios+ratio_id)*4;
       const T px = (anchor[anchor_start]+anchor[anchor_start+2])*0.5;
       const T py = (anchor[anchor_start+1]+anchor[anchor_start+3])*0.5;
       const T pw = anchor[anchor_start+2]-anchor[anchor_start];
@@ -125,7 +125,7 @@ namespace plugin
     SMeanStd mean_std;
     memcpy(&mean_std.mean[0], mean, sizeof(float)*4);
     memcpy(&mean_std.std[0], std, sizeof(float)*4);
-    const size_t input_size = batch_size*num_bbox*num_classes;
+    const size_t input_size = batch_size*num_bbox*num_classes*num_ratios;
     delta2bbox_kernel<T><<<GET_BLOCKS(input_size), CUDA_NUM_THREADS,0,stream>>>(
       out_cls, out_bbox,
       in_cls, in_bbox, anchor, clip_range,
