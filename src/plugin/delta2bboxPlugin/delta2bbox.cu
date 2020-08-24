@@ -36,23 +36,29 @@ namespace plugin
   template<typename T>
   __global__ void delta2bbox_kernel(T* out_cls, T* out_bbox,
     const T* in_cls, const T* in_bbox, const T* anchor, const int* clip_range,
-    int batch_size, int num_bbox, int num_classes, int num_ratios,
+    int batch_size, int num_bbox, int num_outbbox, int num_classes, int num_ratios,
     bool use_segmoid_cls, 
     SMeanStd mean_std){
     
     const T max_ratio = abs(logf(16./1000.));
-    const int out_batch_stride = num_bbox*num_classes*num_ratios;
+    const int out_batch_stride = num_outbbox*num_classes;
     const int out_bbox_stride = num_classes*num_ratios;
-    const int in_batch_stride = out_batch_stride;
+    const int in_batch_stride = num_bbox*num_classes*num_ratios;
     const int in_ratio_stride = num_bbox*num_classes;
     const int in_class_stride = num_bbox;
-    CUDA_KERNEL_LOOP(i, batch_size*num_bbox*num_classes*num_ratios){
+    CUDA_KERNEL_LOOP(i, batch_size*num_outbbox*num_classes){
       int tmp_i = i;
       const int batch_id = tmp_i/out_batch_stride;
       tmp_i %= out_batch_stride;
       const int bbox_id = tmp_i/out_bbox_stride;
+      if(bbox_id>=num_bbox){
+        continue;
+      }
       tmp_i %= out_bbox_stride;
       const int ratio_id = tmp_i/num_classes;
+      if(ratio_id>=num_ratios){
+        continue;
+      }
       const int class_id = tmp_i%num_classes;
 
       // cls
@@ -74,7 +80,7 @@ namespace plugin
         continue;
       }
       // const int out_bbox_id = out_cls_id * 4 /num_classes;
-      const int out_bbox_id = (batch_id*num_bbox*num_ratios + bbox_id*num_ratios+ratio_id)*4;
+      const int out_bbox_id = (batch_id*num_outbbox + bbox_id*num_ratios+ratio_id)*4;
       const int in_delta_id = batch_id*num_bbox*num_ratios + ratio_id*num_bbox;
       const T dx = in_bbox[in_delta_id*4 + bbox_id]*mean_std.std[0] + mean_std.mean[0];
       const T dy = in_bbox[in_delta_id*4 + num_bbox + bbox_id]*mean_std.std[1] + mean_std.mean[1];
@@ -118,18 +124,18 @@ namespace plugin
   template<typename T>
   void delta2bbox(T* out_cls, T* out_bbox,
                   const T* in_cls, const T* in_bbox, const T* anchor, const int* clip_range,
-                  int batch_size, int num_bbox, int num_classes, int num_ratios,
+                  int batch_size, int num_bbox, int num_outbbox, int num_classes, int num_ratios,
                   bool use_segmoid_cls,
                   float* mean, float* std,
                   cudaStream_t stream){
     SMeanStd mean_std;
     memcpy(&mean_std.mean[0], mean, sizeof(float)*4);
     memcpy(&mean_std.std[0], std, sizeof(float)*4);
-    const size_t input_size = batch_size*num_bbox*num_classes*num_ratios;
+    const size_t input_size = batch_size*num_outbbox*num_classes;
     delta2bbox_kernel<T><<<GET_BLOCKS(input_size), CUDA_NUM_THREADS,0,stream>>>(
       out_cls, out_bbox,
       in_cls, in_bbox, anchor, clip_range,
-      batch_size, num_bbox, num_classes, num_ratios,
+      batch_size, num_bbox, num_outbbox, num_classes, num_ratios,
       use_segmoid_cls, 
       mean_std
     );
@@ -138,7 +144,7 @@ namespace plugin
   template
   void delta2bbox<float>(float* out_cls, float* out_bbox,
                   const float* in_cls, const float* in_bbox, const float* anchor, const int* clip_range,
-                  int batch_size, int num_bbox, int num_classes, int num_ratios,
+                  int batch_size, int num_bbox, int num_outbbox, int num_classes, int num_ratios,
                   bool use_segmoid_cls,
                   float* mean, float* std,
                   cudaStream_t stream);

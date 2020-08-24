@@ -154,7 +154,7 @@ int Delta2BBoxPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc
     int batch_size = inputDesc[0].dims.d[0];
     int num_inboxes = inputDesc[0].dims.d[2] * inputDesc[0].dims.d[3];
     int num_ratios = inputDesc[0].dims.d[1]/mNumClasses;
-    // int num_inboxes = outputDesc[0].dims.d[1];
+    int num_outboxes = outputDesc[0].dims.d[1];
 
     float* out_cls = (float*)outputs[0];
     float* out_bbox = (float*)outputs[1];
@@ -177,7 +177,7 @@ int Delta2BBoxPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc
                     stream);
     delta2bbox<float>(out_cls, out_bbox,
                 in_cls, in_bbox, anchor, clip_range,
-                batch_size, num_inboxes, mNumClasses, num_ratios,
+                batch_size, num_inboxes, num_outboxes, mNumClasses, num_ratios,
                 mUseSigmoidCls,
                 mTargetMeans.data(), mTargetStds.data(),
                 stream);
