@@ -167,8 +167,8 @@ void modulated_deform_conv_cuda_forward(
     float* columns=(float*)workspace;
 
     const size_t input_step = channels*height*width;
-    const size_t offset_step = channels/3*2*height*width;
-    const size_t mask_step = channels/3*height*width;
+    const size_t offset_step = deformable_group*kernel_h*kernel_w*2*height*width;
+    const size_t mask_step = deformable_group*kernel_h*kernel_w*height*width;
     const size_t out_step = channels_out*height_out*width_out;
     const size_t out_group_step = out_step/group;
     const size_t col_g_step = channels * kernel_w * kernel_h / group * height_out * width_out;
@@ -194,7 +194,7 @@ void modulated_deform_conv_cuda_forward(
             float *col_start = columns + g * col_g_step;
             float *out_buffer_start = output + b * out_step + g * out_group_step;
             
-            cudaMemsetAsync(out_buffer_start, 0, 1);
+            // cudaMemsetAsync(out_buffer_start, 0, 1, stream);
             cublasSgemm(cublas_handle,
                         CUBLAS_OP_N, CUBLAS_OP_N,
                         n, m, k,
