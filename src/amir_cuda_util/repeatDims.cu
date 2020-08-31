@@ -57,6 +57,7 @@ namespace cuda
     template void repeat_dims<float>(float* dst, const float* src,const int *input_dims, const int *repeatDims, int dims, cudaStream_t stream);
     template void repeat_dims<int>(int* dst, const int* src,const int *input_dims, const int *repeatDims, int dims, cudaStream_t stream);
     template void repeat_dims<half>(half* dst, const half* src,const int *input_dims, const int *repeatDims, int dims, cudaStream_t stream);
+    template void repeat_dims<char>(char* dst, const char* src,const int *input_dims, const int *repeatDims, int dims, cudaStream_t stream);
 
 }
 }
