@@ -96,7 +96,7 @@ bool MeshGridPluginDynamic::supportsFormatCombination(int pos, const nvinfer1::P
      if(pos==0)
     {
         return (in[pos].type == nvinfer1::DataType::kFLOAT && in[pos].format == nvinfer1::TensorFormat::kLINEAR)
-        || (in[pos].type == nvinfer1::DataType::kHALF && in[pos].format == nvinfer1::TensorFormat::kCHW16)
+        || (in[pos].type == nvinfer1::DataType::kHALF && in[pos].format == nvinfer1::TensorFormat::kLINEAR)
         ||(in[pos].type == nvinfer1::DataType::kINT32 && in[pos].format == nvinfer1::TensorFormat::kLINEAR);
     }else{
         return (inOut[pos].type == in[0].type && inOut[pos].format == in[0].format);
