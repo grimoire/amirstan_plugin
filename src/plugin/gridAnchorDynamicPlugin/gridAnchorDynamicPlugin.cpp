@@ -27,7 +27,8 @@ std::vector<PluginField> GridAnchorDynamicPluginDynamicCreator::mPluginAttribute
                                                                                 PluginField("ratios"),
                                                                                 PluginField("scale_major"),
                                                                                 PluginField("center_x"),
-                                                                                PluginField("center_y")
+                                                                                PluginField("center_y"),
+                                                                                PluginField("base_anchors"),
                                                                                 });
 
 GridAnchorDynamicPluginDynamic::GridAnchorDynamicPluginDynamic(
@@ -51,6 +52,28 @@ GridAnchorDynamicPluginDynamic::GridAnchorDynamicPluginDynamic(
     initialize();
 }
 
+
+GridAnchorDynamicPluginDynamic::GridAnchorDynamicPluginDynamic(
+    const std::string &name, 
+    int baseSize, int stride,
+    const std::vector<float> &baseAnchors
+    )
+    : mLayerName(name),
+      mBaseSize(baseSize),
+      mStride(stride),
+      mScales(std::vector<float>()),
+      mRatios(std::vector<float>()),
+      mScaleMajor(true),
+      mCenterX(0),
+      mCenterY(0)
+{
+    mIsInitialed = false;
+    mDevBaseAnchor = nullptr;
+    mNumBaseAnchor = baseAnchors.size()/4;
+    mHostBaseAnchor = std::shared_ptr<float>((float*)malloc(mNumBaseAnchor * 4 * sizeof(float)));
+    memcpy(mHostBaseAnchor.get(), baseAnchors.data(), mNumBaseAnchor * 4 * sizeof(float));
+    initialize();
+}
 
 void set_base_anchor(int rid, int sid,
 float x_ctr, float y_ctr,
@@ -155,11 +178,15 @@ GridAnchorDynamicPluginDynamic::GridAnchorDynamicPluginDynamic(const std::string
 
 nvinfer1::IPluginV2DynamicExt *GridAnchorDynamicPluginDynamic::clone() const
 {
+    // GridAnchorDynamicPluginDynamic *plugin = new GridAnchorDynamicPluginDynamic(mLayerName,
+    //                                                                       mBaseSize, mStride,
+    //                                                                       mScales, mRatios,
+    //                                                                       mScaleMajor,
+    //                                                                       mCenterX, mCenterY);
+    std::vector<float> baseAnchors(mHostBaseAnchor.get(), mHostBaseAnchor.get()+mNumBaseAnchor*4);
     GridAnchorDynamicPluginDynamic *plugin = new GridAnchorDynamicPluginDynamic(mLayerName,
                                                                           mBaseSize, mStride,
-                                                                          mScales, mRatios,
-                                                                          mScaleMajor,
-                                                                          mCenterX, mCenterY);
+                                                                          baseAnchors);
     plugin->setPluginNamespace(getPluginNamespace());
     
     return plugin;
@@ -364,6 +391,7 @@ IPluginV2 *GridAnchorDynamicPluginDynamicCreator::createPlugin(const char *name,
     bool scale_major=true;
     int center_x=-1;
     int center_y=-1;
+    std::vector<float> base_anchors;
 
 
     for (int i = 0; i < fc->nbFields; i++)
@@ -387,8 +415,6 @@ IPluginV2 *GridAnchorDynamicPluginDynamicCreator::createPlugin(const char *name,
         {
             int data_size= fc->fields[i].length;
             const float* data_start = static_cast<const float *>(fc->fields[i].data);
-            // float* buffer = new float[data_size];
-            // memcpy(buffer, data_start, data_size*sizeof(float));
             scales = std::vector<float>(data_start, data_start+data_size);
         }
 
@@ -396,8 +422,6 @@ IPluginV2 *GridAnchorDynamicPluginDynamicCreator::createPlugin(const char *name,
         {
             int data_size= fc->fields[i].length;
             const float* data_start = static_cast<const float *>(fc->fields[i].data);
-            // float* buffer = new float[data_size];
-            // memcpy(buffer, data_start, data_size*sizeof(float));
             ratios = std::vector<float>(data_start, data_start+data_size);
         }
 
@@ -415,12 +439,26 @@ IPluginV2 *GridAnchorDynamicPluginDynamicCreator::createPlugin(const char *name,
         {
             center_y = static_cast<const int *>(fc->fields[i].data)[0];
         }
+
+        if (field_name.compare("base_anchors") == 0)
+        {
+            int data_size= fc->fields[i].length;
+            const float* data_start = static_cast<const float *>(fc->fields[i].data);
+            base_anchors = std::vector<float>(data_start, data_start+data_size);
+        }
     }
 
-    GridAnchorDynamicPluginDynamic *plugin = new GridAnchorDynamicPluginDynamic(name, base_size, stride, 
-                                                                                scales, ratios,
-                                                                                scale_major, 
-                                                                                center_x, center_y);
+    GridAnchorDynamicPluginDynamic *plugin;
+    if(base_anchors.size()>0){
+        plugin = new GridAnchorDynamicPluginDynamic(name, base_size, stride, 
+                                                    base_anchors);
+
+    }else{
+        plugin = new GridAnchorDynamicPluginDynamic(name, base_size, stride, 
+                                                    scales, ratios,
+                                                    scale_major, 
+                                                    center_x, center_y);
+    }
     plugin->setPluginNamespace(getPluginNamespace());
 
     return plugin;

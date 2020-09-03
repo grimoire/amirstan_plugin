@@ -23,6 +23,12 @@ public:
         int centerX=-1, int centerY=-1
         );
 
+    GridAnchorDynamicPluginDynamic(
+        const std::string &name, 
+        int baseSize, int stride,
+        const std::vector<float> &baseAnchors
+        );
+
     GridAnchorDynamicPluginDynamic(const std::string name, const void *data, size_t length);
 
     // It doesn't make sense to make GridAnchorDynamicPluginDynamic without arguments, so we
