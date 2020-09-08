@@ -1,6 +1,8 @@
 #include <cmath>
 #include <algorithm>
 #include <stdio.h>
+#include <cuda_fp16.h>
+
 #include "group_norm.h"
 #include "amir_cuda_util/cuda_util.h"
 
@@ -13,12 +15,12 @@ namespace plugin
     __global__ void group_norm_kernel(T* output,const T* input, size_t input_size,
         int batch_size, int num_groups, int num_channels, int WH,
         T eps, 
-        T * mean,  T * var, const T* weight,const T* bias){
+        T * mean,  T* var, const float* weight,const float* bias){
         CUDA_KERNEL_LOOP(i, input_size) {
             const int mean_var_index = i/(num_channels*WH/num_groups);
             const int axpy_index = (i%(num_channels*WH))/WH;
             T ret = (input[i]- mean[mean_var_index])/sqrt(var[mean_var_index]+eps);
-            ret = ret*weight[axpy_index] + bias[axpy_index];
+            ret = ret*T(weight[axpy_index]) + T(bias[axpy_index]);
             output[i] = ret;
         }
        }
@@ -27,7 +29,7 @@ namespace plugin
     void compute_group_norm(T* output, const T* input, 
         int batch_size, int num_groups, int num_channels, int WH,
          T eps, 
-        const T* weight,const T* bias,  cudaStream_t stream, void* workspace){
+        const float* weight,const float* bias,  cudaStream_t stream, void* workspace){
         T* mean = (T*)workspace;
         T* var = mean + batch_size*num_groups;
         int mean_var_shape[2] = {batch_size*num_groups, num_channels*WH/num_groups};
@@ -51,5 +53,10 @@ namespace plugin
         float eps,
          const float* weight,const float* bias,  cudaStream_t stream, void* workspace);
 
+
+    // template void compute_group_norm<half>(half* output, const half* input, 
+    //     int batch_size, int num_groups, int num_channels,  int WH,
+    //     half eps,
+    //     const float* weight,const float* bias,  cudaStream_t stream, void* workspace);
 }
 }

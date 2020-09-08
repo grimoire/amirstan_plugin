@@ -11,6 +11,6 @@ namespace plugin
     void compute_group_norm(T* output, const T* input, 
     int batch_size, int num_groups, int num_channels, int WH,
     T eps,
-     const T* weight,const T* bias,  cudaStream_t stream, void* workspace);
+     const float* weight,const float* bias,  cudaStream_t stream, void* workspace);
 }
 }

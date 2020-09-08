@@ -2,10 +2,10 @@
 #include <assert.h>
 #include <chrono>
 #include "plugin/groupNormPlugin/groupNormPlugin.h"
-#include "group_norm.h"
 #include "common.h"
 #include "amirCommon.h"
 #include "serialize.hpp"
+#include "group_norm.h"
 
 namespace amirstan
 {
@@ -113,8 +113,7 @@ bool GroupNormPluginDynamic::supportsFormatCombination(int pos, const nvinfer1::
     switch (pos)
     {
     case 0:
-        return in[0].type == nvinfer1::DataType::kFLOAT &&
-        in[0].format == nvinfer1::TensorFormat::kLINEAR;
+        return (in[0].type == nvinfer1::DataType::kFLOAT && in[0].format == nvinfer1::TensorFormat::kLINEAR);
     case 1:
         return out[0].type == in[0].type &&
                out[0].format == nvinfer1::TensorFormat::kLINEAR;
@@ -137,7 +136,7 @@ void GroupNormPluginDynamic::configurePlugin(
 size_t GroupNormPluginDynamic::getWorkspaceSize(
     const nvinfer1::PluginTensorDesc *inputs, int nbInputs, const nvinfer1::PluginTensorDesc *outputs, int nbOutputs) const
 {
-    size_t wordSize = samplesCommon::getElementSize(nvinfer1::DataType::kFLOAT);
+    size_t wordSize = samplesCommon::getElementSize(inputs[0].type);
     int batch_size = inputs[0].dims.d[0];
     int channel_size = inputs[0].dims.d[1];
     int width = inputs[0].dims.d[2];
@@ -158,10 +157,26 @@ int GroupNormPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc,
     int inputHeight = inputDesc[0].dims.d[2];
     int inputWidth = inputDesc[0].dims.d[3];
 
-    compute_group_norm<float>((float*)outputs[0], (float*)inputs[0], 
-    batch_size, mNumGroups, inputChannel, inputWidth*inputHeight,
-    mEps,
-     (float*)mWdev, (float*)mBdev,  stream, workSpace);
+    auto data_type = inputDesc[0].type;
+
+    switch(data_type){
+    case nvinfer1::DataType::kFLOAT:
+        compute_group_norm<float>((float*)outputs[0], (float*)inputs[0], 
+        batch_size, mNumGroups, inputChannel, inputWidth*inputHeight,
+        mEps,
+        (float*)mWdev, (float*)mBdev,  stream, workSpace);
+        break;
+
+    // case nvinfer1::DataType::kHALF:
+    //     compute_group_norm<half>((half*)outputs[0], (half*)inputs[0], 
+    //     batch_size, mNumGroups, inputChannel, inputWidth*inputHeight,
+    //     (half)mEps,
+    //     (float*)mWdev, (float*)mBdev,  stream, workSpace);
+    //     break;
+    default:
+        return 1;
+        break;
+    }
 
     return 0;
 }
