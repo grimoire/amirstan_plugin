@@ -29,7 +29,7 @@ void tensorPermute(float *dst, float *src, int *src_size, int *permute, int src_
 template <typename scalar_t>
 void output_add_bias(scalar_t *output, scalar_t *bias, size_t batch, size_t channel, size_t height, size_t width, cudaStream_t stream);
 
-int deform_conv_forward_cuda(float *input, float *weight, float *offset,
+int deform_conv_forward_cuda(float *input, float *weight, float* bias, float *offset,
                              float *output, void *workspace,
                              const DCN_PARAMS &dcn_params, cudaStream_t stream)
 {
@@ -53,6 +53,7 @@ int deform_conv_forward_cuda(float *input, float *weight, float *offset,
     long inputWidth = dcn_params.inputW;
 
     im2col_step = std::min(int(batchSize), im2col_step);
+    bool with_bias = (bias!=nullptr);
     assert(batchSize % im2col_step == 0);
 
     long nOutputPlane = dcn_params.outputChannel;
@@ -121,6 +122,11 @@ int deform_conv_forward_cuda(float *input, float *weight, float *offset,
                                      im2col_step, outputHeight, outputWidth};
         int output_buffer_permute[5] = {0, 2, 1, 3, 4};
         tensorPermute(output, output_buffer, &output_buffer_shape[0], &output_buffer_permute[0], 5, stream);
+    }
+
+    if (with_bias) {
+        output_add_bias<float>(output, bias, batchSize, nOutputPlane, outputHeight, outputWidth, stream);
+        // output += bias.view({1, bias.size(0), 1, 1});
     }
 
     return 0;

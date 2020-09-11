@@ -17,7 +17,8 @@ public:
     DeformableConvPluginDynamic(
         const std::string &name, const nvinfer1::DataType &type,
         const int outDim, const nvinfer1::Dims &kernelSize,
-        const nvinfer1::Weights &W);
+        const nvinfer1::Weights &W,
+        const nvinfer1::Weights &B);
 
     DeformableConvPluginDynamic(const std::string name, const void *data, size_t length);
 
@@ -86,6 +87,11 @@ private:
     std::shared_ptr<char> mWhost;
     size_t mNumParamsW;
     char *mWdev;
+
+    nvinfer1::Weights mB;
+    std::shared_ptr<char> mBhost;
+    size_t mNumParamsB;
+    char *mBdev;
 
     cublasHandle_t m_cublas_handle;
     cudaStream_t m_cuda_stream;

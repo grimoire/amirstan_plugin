@@ -23,7 +23,7 @@ typedef struct _DCN_PARAMS
     int im2col_step = 64;
 } DCN_PARAMS;
 
-int deform_conv_forward_cuda(float *input, float *weight, float *offset,
+int deform_conv_forward_cuda(float *input, float *weight, float *bias, float *offset,
                              float *output, void* workspace,
                              const DCN_PARAMS &dcn_params,
                              cudaStream_t stream = 0);
