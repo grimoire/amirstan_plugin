@@ -19,6 +19,7 @@
 #include "plugin/torchFlipPlugin/torchFlipPlugin.h"
 #include "plugin/torchCumMaxMinPlugin/torchCumMaxMinPlugin.h"
 #include "plugin/torchCumPlugin/torchCumPlugin.h"
+#include "plugin/torchNMSPlugin/torchNMSPlugin.h"
 
 
 extern "C"

@@ -26,6 +26,7 @@ set(PLUGIN_LIST deformableConvPlugin
                 torchFlipPlugin
                 torchCumMaxMinPlugin
                 torchCumPlugin
+                torchNMSPlugin
                 )
 
 set(INFER_PLUGIN_SRC InferPlugin.cpp
