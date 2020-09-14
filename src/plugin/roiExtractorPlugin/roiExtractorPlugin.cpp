@@ -24,21 +24,24 @@ std::vector<PluginField> RoiExtractorPluginDynamicCreator::mPluginAttributes({Pl
                                                                            PluginField("sample_num"),
                                                                            PluginField("featmap_strides"),
                                                                            PluginField("roi_scale_factor"),
-                                                                           PluginField("finest_scale")});
+                                                                           PluginField("finest_scale"),
+                                                                           PluginField("aligned")});
 
 RoiExtractorPluginDynamic::RoiExtractorPluginDynamic(
     const std::string &name, 
         int outSize,
         int sampleNum,
-        const std::vector<int>& featmapStrides,
+        const std::vector<float>& featmapStrides,
         float roiScaleFactor,
-        int finestScale)
+        int finestScale,
+        bool aligned)
     : mLayerName(name),
       mOutSize(outSize),
       mSampleNum(sampleNum),
       mFeatmapStrides(featmapStrides),
       mRoiScaleFactor(roiScaleFactor),
-      mFinestScale(finestScale)
+      mFinestScale(finestScale),
+      mAligned(aligned)
 {
 
 }
@@ -50,14 +53,15 @@ RoiExtractorPluginDynamic::RoiExtractorPluginDynamic(const std::string name, con
     deserialize_value(&data, &length, &mSampleNum);
     deserialize_value(&data, &length, &mRoiScaleFactor);
     deserialize_value(&data, &length, &mFinestScale);
+    deserialize_value(&data, &length, &mAligned);
     
     int strides_size = 0;
     deserialize_value(&data, &length, &strides_size);
 
     const char *d = static_cast<const char *>(data);
 
-    int *strides_data = (int*)deserToHost<char>(d, strides_size * sizeof(int));
-    mFeatmapStrides = std::vector<int>(&strides_data[0], &strides_data[0]+strides_size);
+    float *strides_data = (float*)deserToHost<char>(d, strides_size * sizeof(float));
+    mFeatmapStrides = std::vector<float>(&strides_data[0], &strides_data[0]+strides_size);
     initialize();
 }
 
@@ -68,7 +72,8 @@ nvinfer1::IPluginV2DynamicExt *RoiExtractorPluginDynamic::clone() const
                                                                         mSampleNum,
                                                                         mFeatmapStrides,
                                                                         mRoiScaleFactor,
-                                                                        mFinestScale);
+                                                                        mFinestScale,
+                                                                        mAligned);
     plugin->setPluginNamespace(getPluginNamespace());
 
     return plugin;
@@ -123,7 +128,7 @@ int RoiExtractorPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDe
     const int kMaxFeatMap=10;
     int heights[kMaxFeatMap];
     int widths[kMaxFeatMap];
-    int strides[kMaxFeatMap];
+    float strides[kMaxFeatMap];
 
     int num_feats = mFeatmapStrides.size();
     for(int i=0;i<num_feats;++i){
@@ -139,7 +144,7 @@ int RoiExtractorPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDe
                         (const float*)rois, num_rois,
                         feats, num_feats,
                         batch_size, channels, &heights[0], &widths[0], &strides[0],
-                        mOutSize, mSampleNum, mRoiScaleFactor, mFinestScale,
+                        mOutSize, mSampleNum, mRoiScaleFactor, mFinestScale, mAligned,
                         stream
                         );
 
@@ -179,11 +184,12 @@ void RoiExtractorPluginDynamic::terminate()
 
 size_t RoiExtractorPluginDynamic::getSerializationSize() const
 {
-    return mFeatmapStrides.size() * sizeof(int) +
+    return mFeatmapStrides.size() * sizeof(float) +
            sizeof(mOutSize) +
            sizeof(mSampleNum) +
            sizeof(mRoiScaleFactor) +
            sizeof(mFinestScale) +
+           sizeof(mAligned) +
            sizeof(int);
 }
 
@@ -193,6 +199,7 @@ void RoiExtractorPluginDynamic::serialize(void *buffer) const
     serialize_value(&buffer, mSampleNum);
     serialize_value(&buffer, mRoiScaleFactor);
     serialize_value(&buffer, mFinestScale);
+    serialize_value(&buffer, mAligned);
 
     int strides_size = mFeatmapStrides.size();
     serialize_value(&buffer, strides_size);
@@ -245,9 +252,10 @@ IPluginV2 *RoiExtractorPluginDynamicCreator::createPlugin(const char *name, cons
 
     int outSize = 7;
     int sampleNum = 2;
-    std::vector<int> featmapStrides;
+    std::vector<float> featmapStrides;
     float roiScaleFactor = -1;
     int finestScale=56;
+    bool aligned=false;
 
     for (int i = 0; i < fc->nbFields; i++)
     {
@@ -280,8 +288,14 @@ IPluginV2 *RoiExtractorPluginDynamicCreator::createPlugin(const char *name, cons
         if (field_name.compare("featmap_strides") == 0)
         {
             int data_size= fc->fields[i].length;
-            const int* data_start = static_cast<const int *>(fc->fields[i].data);
-            featmapStrides = std::vector<int>(data_start, data_start+data_size);
+            const float* data_start = static_cast<const float *>(fc->fields[i].data);
+            featmapStrides = std::vector<float>(data_start, data_start+data_size);
+        }
+
+        if (field_name.compare("aligned") == 0)
+        {
+            int aligned_int = static_cast<const int *>(fc->fields[i].data)[0];
+            aligned = aligned_int!=0;
         }
 
     }
@@ -296,7 +310,8 @@ IPluginV2 *RoiExtractorPluginDynamicCreator::createPlugin(const char *name, cons
                                                                     sampleNum,
                                                                     featmapStrides,
                                                                     roiScaleFactor,
-                                                                    finestScale);
+                                                                    finestScale,
+                                                                    aligned);
     plugin->setPluginNamespace(getPluginNamespace());
     return plugin;
 }

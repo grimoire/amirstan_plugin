@@ -16,11 +16,12 @@ namespace plugin
                         int c,
                         int *h,
                         int *w,
-                        int *strides,
+                        float *strides,
                         int out_size,
                         int sample_num,
                         float roi_scale_factor,
                         int finest_scale,
+                        bool aligned,
                         cudaStream_t stream);
 
 }

@@ -18,9 +18,10 @@ public:
         const std::string &name, 
         int outSize,
         int sampleNum,
-        const std::vector<int>& featmapStrides,
+        const std::vector<float>& featmapStrides,
         float roiScaleFactor = -1,
-        int finestScale = 56);
+        int finestScale = 56,
+        bool aligned = false);
 
     RoiExtractorPluginDynamic(const std::string name, const void *data, size_t length);
 
@@ -62,9 +63,10 @@ private:
 
     int mOutSize;
     int mSampleNum;
-    std::vector<int> mFeatmapStrides;
+    std::vector<float> mFeatmapStrides;
     float mRoiScaleFactor;
     int mFinestScale;
+    bool mAligned;
 
 protected:
     // To prevent compiler warnings.

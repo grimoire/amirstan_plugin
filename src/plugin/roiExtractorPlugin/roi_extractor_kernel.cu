@@ -202,11 +202,12 @@ namespace plugin
                         int c,
                         int *h,
                         int *w,
-                        int *strides,
+                        float *strides,
                         int out_size,
                         int sample_num,
                         float roi_scale_factor,
                         int finest_scale,
+                        bool aligned,
                         cudaStream_t stream){
         FeatData feat_data;
         feat_data.batch_size = n;
@@ -221,7 +222,7 @@ namespace plugin
         int pooled_height = out_size;
         int pooled_width = out_size;
         int nThreads = num_rois * c * pooled_height * pooled_width;
-        bool aligned = true;
+        // bool aligned = true;
         roi_extractor_kernel<T><<<GET_BLOCKS(nThreads), CUDA_NUM_THREADS,0,stream>>>(
             output, rois,
             feat_data,
@@ -240,11 +241,12 @@ namespace plugin
                         int c,
                         int *h,
                         int *w,
-                        int *strides,
+                        float *strides,
                         int out_size,
                         int sample_num,
                         float roi_scale_factor,
                         int finest_scale,
+                        bool aligned,
                         cudaStream_t stream);
 
 
