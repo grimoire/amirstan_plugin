@@ -20,6 +20,7 @@
 #include "plugin/torchCumMaxMinPlugin/torchCumMaxMinPlugin.h"
 #include "plugin/torchCumPlugin/torchCumPlugin.h"
 #include "plugin/torchNMSPlugin/torchNMSPlugin.h"
+#include "plugin/roiPoolPlugin/roiPoolPlugin.h"
 
 
 extern "C"
