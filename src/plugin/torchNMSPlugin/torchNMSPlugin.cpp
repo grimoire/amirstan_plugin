@@ -79,8 +79,19 @@ size_t TorchNMSPluginDynamic::getWorkspaceSize(
 {
     int num_bbox = inputs[1].dims.d[0]; 
     auto data_type = inputs[1].type;
-    return num_bbox*sizeof(data_type)*4
-        + num_bbox*sizeof(int);
+    size_t score_workspace = 0;
+    size_t nms_workspace = 0;
+    switch(data_type){
+    case nvinfer1::DataType::kFLOAT:
+        score_workspace = num_bbox*sizeof(float)*2;
+        nms_workspace = nms_workspace_size<float>(num_bbox) + 1;
+        break;
+    default:
+        break;
+    }
+    return score_workspace
+        + num_bbox*sizeof(int)
+        + nms_workspace;
 }
 
 int TorchNMSPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc, const nvinfer1::PluginTensorDesc *outputDesc,
