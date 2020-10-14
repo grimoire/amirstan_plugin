@@ -16,7 +16,7 @@ INCLUDE_DIRECTORIES(/usr/local/cuda/include)
 
 # cub
 if (NOT DEFINED CUB_ROOT_DIR)
-  set(CUB_ROOT_DIR "$ENV{HOME}/SDK/cub-1.8.0/")
+  set(CUB_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/cub")
 endif()
 INCLUDE_DIRECTORIES(${CUB_ROOT_DIR})
 

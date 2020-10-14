@@ -11,19 +11,36 @@ https://github.com/grimoire/mmdetection-to-tensorrt
 ## Requirement
 
 - Tensorrt >= 7.0.0.11
-- cub >= 1.8.0
 
 ## Installation
 
-- Install cub: https://nvlabs.github.io/cub/
 - Install tensorrt7: https://developer.nvidia.com/tensorrt
 
+clone the repo and create build folder
+
 ```shell
-git clone https://github.com/grimoire/amirstan_plugin.git
+git clone --depth=1 https://github.com/grimoire/amirstan_plugin.git
 cd amirstan_plugin
+git submodule update --init
 mkdir build
 cd build
-cmake -DCUB_ROOT_DIR=<path_to_cub> -DTENSORRT_DIR=<path_to_tensorrt> ..
+```
+
+either
+
+- cmake base version
+  ```shell
+  cmake -DTENSORRT_DIR=<path_to_tensorrt> ..
+  ```
+
+- or with deepstream support
+  ```shell
+  cmake -DTENSORRT_DIR=<path_to_tensorrt> -DWITH_DEEPSTREAM=true -DDeepStream_DIR=<path_to_deepstream> ..
+  ```
+
+make the plugins
+
+```shell
 make -j10
 ```
 
