@@ -1,4 +1,4 @@
 [submodule "third_party/cub"]
 	path = third_party/cub
 	url = https://github.com/NVIDIA/cub.git
-	branch = tags/1.8.0
+	branch = 1.8.0

@@ -21,7 +21,7 @@ clone the repo and create build folder
 ```shell
 git clone --depth=1 https://github.com/grimoire/amirstan_plugin.git
 cd amirstan_plugin
-git submodule update --init
+git submodule update --init --progress --depth=1
 mkdir build
 cd build
 ```
