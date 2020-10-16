@@ -1,8 +1,9 @@
-#include <algorithm>
-#include <cmath>
 #include <float.h>
 #include <math.h>
 #include <stdio.h>
+
+#include <algorithm>
+#include <cmath>
 
 #include "amir_cuda_util/cuda_util.h"
 
@@ -11,13 +12,10 @@ __device__ T bilinear_interpolate(const T *input, const int height,
                                   const int width, T y, T x,
                                   const int index /* index for debug only*/) {
   // deal with cases that inverse elements are out of feature map boundary
-  if (y < -1.0 || y > height || x < -1.0 || x > width)
-    return 0;
+  if (y < -1.0 || y > height || x < -1.0 || x > width) return 0;
 
-  if (y <= 0)
-    y = 0;
-  if (x <= 0)
-    x = 0;
+  if (y <= 0) y = 0;
+  if (x <= 0) x = 0;
 
   int y_low = (int)y;
   int x_low = (int)x;

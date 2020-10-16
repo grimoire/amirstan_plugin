@@ -7,7 +7,6 @@
 
 #include "amir_cuda_util/cuda_util.h"
 
-
 using namespace amirstan::cuda;
 template <typename scalar_t>
 __device__ scalar_t deformable_im2col_bilinear(const scalar_t *bottom_data,
