@@ -1,8 +1,10 @@
-#include <algorithm>
-#include <iostream>
 #include <stdio.h>
 
+#include <algorithm>
+#include <iostream>
+
 #include "amir_cuda_util/cuda_util.h"
+
 
 namespace amirstan {
 namespace cuda {
@@ -67,6 +69,6 @@ template void memcpyPermute<float>(float *dst, const float *src, int *src_size,
                                    int *permute, int src_dim,
                                    cudaStream_t stream);
 
-} // namespace cuda
+}  // namespace cuda
 
-} // namespace amirstan
+}  // namespace amirstan

@@ -1,11 +1,12 @@
 #include <float.h>
 #include <math.h>
 #include <stdio.h>
+
 #include <algorithm>
 #include <cmath>
 
-
 #include "amir_cuda_util/cuda_util.h"
+
 
 using namespace amirstan::cuda;
 template <typename scalar_t>

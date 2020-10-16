@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 #include <stdint.h>
+
 #include <cub/cub.cuh>
+
 #include "bboxUtils.h"
 #include "cublas_v2.h"
 #include "kernel.h"

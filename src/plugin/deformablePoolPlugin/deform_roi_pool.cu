@@ -1,7 +1,6 @@
+#include "amir_cuda_util/cuda_util.h"
 #include "deform_roi_pool.h"
 #include "deform_roi_pool_cuda_kernel.cuh"
-
-#include "amir_cuda_util/cuda_util.h"
 
 namespace amirstan {
 namespace plugin {

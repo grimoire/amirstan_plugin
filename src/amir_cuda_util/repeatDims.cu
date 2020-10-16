@@ -1,6 +1,7 @@
-#include <algorithm>
 #include <cuda_fp16.h>
 #include <stdio.h>
+
+#include <algorithm>
 
 #include "amir_cuda_util/cuda_util.h"
 
@@ -12,7 +13,6 @@ __global__ void repeat_dims_kernel(T *dst, const T *src, size_t dst_elems,
                                    TensorSize input_size,
                                    TensorStride input_stride,
                                    TensorStride output_stride, int dims) {
-
   size_t *src_stride = &(input_stride.size[0]);
   size_t *dst_stride = &(output_stride.size[0]);
   int *src_size = &(input_size.size[0]);
@@ -66,5 +66,5 @@ template void repeat_dims<char>(char *dst, const char *src,
                                 const int *input_dims, const int *repeatDims,
                                 int dims, cudaStream_t stream);
 
-} // namespace cuda
-} // namespace amirstan
+}  // namespace cuda
+}  // namespace amirstan

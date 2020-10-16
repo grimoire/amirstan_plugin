@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include <vector>
+
 #include "bboxUtils.h"
 #include "cub/cub.cuh"
 #include "cub_helper.h"

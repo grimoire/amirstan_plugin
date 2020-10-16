@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include <vector>
+
 #include "gatherNMSOutputs.h"
 #include "kernel.h"
 #include "plugin.h"

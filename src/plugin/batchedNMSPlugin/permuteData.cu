@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "kernel.h"
 #include <vector>
+
+#include "kernel.h"
 
 template <typename Dtype, unsigned nthds_per_cta>
 __launch_bounds__(nthds_per_cta) __global__
@@ -31,8 +32,7 @@ __launch_bounds__(nthds_per_cta) __global__
     const int n = index / num_dim / num_classes / num_data;
     const int new_index = ((n * num_classes + c) * num_data + d) * num_dim + i;
     float result = data[index];
-    if (confSigmoid)
-      result = exp(result) / (1 + exp(result));
+    if (confSigmoid) result = exp(result) / (1 + exp(result));
 
     new_data[new_index] = result;
   }

@@ -1,8 +1,9 @@
 #include <stdio.h>
+
 #include <algorithm>
 #include <cmath>
-#include "carafe_cuda.h"
 
+#include "carafe_cuda.h"
 
 #define CUDA_1D_KERNEL_LOOP(i, n)                            \
   for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < n; \

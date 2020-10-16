@@ -1,5 +1,6 @@
 #include <cuda_fp16.h>
 #include <stdio.h>
+
 #include <algorithm>
 #include <cmath>
 #include <cub/cub.cuh>

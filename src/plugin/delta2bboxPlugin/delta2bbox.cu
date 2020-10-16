@@ -1,9 +1,10 @@
 #include <stdio.h>
+
 #include <algorithm>
 #include <cmath>
+
 #include "amir_cuda_util/cuda_util.h"
 #include "delta2bbox.h"
-
 
 namespace amirstan {
 namespace plugin {

@@ -1,6 +1,4 @@
 #include <stdio.h>
-#include <utility>
-
 #include <thrust/device_vector.h>
 #include <thrust/execution_policy.h>
 #include <thrust/functional.h>
@@ -8,6 +6,8 @@
 #include <thrust/host_vector.h>
 #include <thrust/iterator/discard_iterator.h>
 #include <thrust/reduce.h>
+
+#include <utility>
 
 #include "amir_cuda_util/cuda_util.h"
 #include "reduceUtils.cuh"
@@ -38,7 +38,6 @@ struct unary_divide_by_scalar : public thrust::unary_function<T, T> {
 template <typename T>
 void tensorMean(T *dst, T *src, int *src_size, bool *reduce_dims, int dims,
                 cudaStream_t stream, void *workspace) {
-
   size_t src_length = 1;
   size_t dst_length = 1;
   size_t mean_length = 1;
@@ -102,7 +101,8 @@ template void tensorMean<float>(float *dst, float *src, int *src_size,
 
 // tensorMeanVar
 
-template <typename T> struct subMeanSquareOp {
+template <typename T>
+struct subMeanSquareOp {
   const T *mean;
   subMeanSquareOp(const T *mean) : mean(mean) {}
   inline __device__ T operator()(const T &x) {
@@ -126,7 +126,6 @@ template <typename T>
 void tensorMeanVar(T *mean_dst, T *var_dst, const T *src, int *src_size,
                    bool *reduce_dims, int dims, cudaStream_t stream,
                    void *workspace) {
-
   size_t src_length = 1;
   size_t dst_length = 1;
   size_t mean_length = 1;
@@ -179,7 +178,6 @@ void tensorMeanVar(T *mean_dst, T *var_dst, const T *src, int *src_size,
                          subMeanSquareOp<T>(mean_dst), reduceSumOp<T>(),
                          divScalarOp<T>(mean_length), stream);
   } else {
-
     reduce2DContigous<T>(mean_dst, src, (T)0., src_length, dst_length,
                          thrust::identity<T>{}, reduceSumOp<T>(),
                          divScalarOp<T>(mean_length), stream);
@@ -203,5 +201,5 @@ template void tensorMeanVar<float>(float *mean_dst, float *vat_dst,
                                    bool *reduce_dims, int dims,
                                    cudaStream_t stream, void *workspace);
 
-} // namespace cuda
-} // namespace amirstan
+}  // namespace cuda
+}  // namespace amirstan

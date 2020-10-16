@@ -9,7 +9,8 @@ namespace cuda {
 
 #define MAX_GRID_SIZE 65535LL
 
-template <typename T> __host__ __device__ __forceinline__ T ceilDiv(T a, T b) {
+template <typename T>
+__host__ __device__ __forceinline__ T ceilDiv(T a, T b) {
   return (a + b - 1) / b;
 }
 
@@ -18,17 +19,20 @@ __device__ __forceinline__ size_t getLinearBlockId() {
          blockIdx.x;
 }
 
-template <typename T> struct divScalarOp {
+template <typename T>
+struct divScalarOp {
   T N;
   divScalarOp(T N) : N(N) {}
   inline __device__ T operator()(const T &x) { return x / N; }
 };
 
-template <typename T> struct squareOp {
+template <typename T>
+struct squareOp {
   inline __device__ T operator()(const T &x) { return x * x; }
 };
 
-template <typename T> struct reduceSumOp {
+template <typename T>
+struct reduceSumOp {
   inline __device__ T operator()(const T &x, const T &y) { return x + y; }
 };
 
@@ -111,10 +115,11 @@ __device__ void reduceNValuesInBlock(T *smem, T threadVals[N],
 
 template <typename T, typename AccT, typename ModifyOp, typename ReduceOp,
           typename FinalizeOp>
-__global__ void
-reduceContigous2DKernel(T *out, const T *in, size_t reductionSize,
-                        size_t totalSlices, AccT init, ModifyOp modifyOp,
-                        ReduceOp reduceOp, FinalizeOp finalizeOp) {
+__global__ void reduceContigous2DKernel(T *out, const T *in,
+                                        size_t reductionSize,
+                                        size_t totalSlices, AccT init,
+                                        ModifyOp modifyOp, ReduceOp reduceOp,
+                                        FinalizeOp finalizeOp) {
   const size_t sliceIndex = getLinearBlockId();
   if (sliceIndex >= totalSlices) {
     return;
@@ -169,7 +174,7 @@ inline dim3 getContigReduceBlock(size_t numSlices, size_t reductionSize) {
   // is high, then we should increase block size for greater parallelism.
   // Aim for at least 32 warps per SM (assume 15 SMs; don't bother
   // inquiring the real number for now).
-  int maxWarps = 4; // better occupancy if many blocks are around
+  int maxWarps = 4;  // better occupancy if many blocks are around
   // For numSlices > 15 * 8, there are > 32 warps active per SM.
   if (numSlices < 15 * 8) {
     maxWarps = 8;
@@ -196,7 +201,6 @@ bool reduce2DContigous(T *out, const T *in, AccT init, size_t inElements,
                        size_t outElements, const ModifyOp modifyOp,
                        const ReduceOp reduceOp, const FinalizeOp finalizeOp,
                        cudaStream_t stream) {
-
   size_t reductionSize = inElements / outElements;
   dim3 block;
   dim3 grid;
@@ -213,5 +217,5 @@ bool reduce2DContigous(T *out, const T *in, AccT init, size_t inElements,
   return true;
 }
 
-} // namespace cuda
-} // namespace amirstan
+}  // namespace cuda
+}  // namespace amirstan
