@@ -4,7 +4,6 @@
 #include <math.h>
 #include <stdio.h>
 
-
 #include "amir_cuda_util/cuda_util.h"
 
 using namespace amirstan::cuda;

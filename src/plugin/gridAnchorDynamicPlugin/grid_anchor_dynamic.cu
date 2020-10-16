@@ -4,7 +4,6 @@
 #include <cmath>
 #include <stdio.h>
 
-
 namespace amirstan {
 namespace plugin {
 using namespace amirstan::cuda;
