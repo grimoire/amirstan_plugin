@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <vector>
 #include "bboxUtils.h"
 #include "kernel.h"
-#include <vector>
 
 template <typename T_BBOX>
 __device__ T_BBOX bboxSize(const Bbox<T_BBOX> &bbox, const bool normalized,
@@ -82,7 +82,7 @@ template <typename T_BBOX>
 __device__ void emptyBboxInfo(BboxInfo<T_BBOX> *bbox_info) {
   bbox_info->conf_score = T_BBOX(0);
   bbox_info->label =
-      -2; // -1 is used for all labels when shared_location is ture
+      -2;  // -1 is used for all labels when shared_location is ture
   bbox_info->bbox_idx = -1;
   bbox_info->kept = false;
 }
@@ -93,8 +93,8 @@ __global__ void allClassNMS_kernel(
     const int num, const int num_classes, const int num_preds_per_class,
     const int top_k, const float nms_threshold, const bool share_location,
     const bool isNormalized,
-    T_BBOX *
-        bbox_data, // bbox_data should be float to preserve location information
+    T_BBOX *bbox_data,  // bbox_data should be float to preserve location
+                        // information
     T_SCORE *beforeNMS_scores, int *beforeNMS_index_array,
     T_SCORE *afterNMS_scores, int *afterNMS_index_array, bool flipXY = false) {
   //__shared__ bool kept_bboxinfo_flag[CAFFE_CUDA_NUM_THREADS * TSIZE];
@@ -103,7 +103,8 @@ __global__ void allClassNMS_kernel(
   for (int i = 0; i < num; i++) {
     const int offset = i * num_classes * num_preds_per_class +
                        blockIdx.x * num_preds_per_class;
-    const int max_idx = offset + top_k; // put top_k bboxes into NMS calculation
+    const int max_idx =
+        offset + top_k;  // put top_k bboxes into NMS calculation
     const int bbox_idx_offset = share_location
                                     ? (i * num_preds_per_class)
                                     : (i * num_classes * num_preds_per_class);

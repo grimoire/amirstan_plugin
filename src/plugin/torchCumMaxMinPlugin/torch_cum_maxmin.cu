@@ -1,8 +1,8 @@
+#include <cuda_fp16.h>
+#include <stdio.h>
 #include <algorithm>
 #include <cmath>
 #include <cub/cub.cuh>
-#include <cuda_fp16.h>
-#include <stdio.h>
 
 #include "amir_cuda_util/cuda_util.h"
 #include "torch_cum_maxmin.h"
@@ -11,20 +11,22 @@ namespace amirstan {
 namespace plugin {
 using namespace amirstan::cuda;
 
-template <typename T, bool is_max> struct BlockPrefixPairCumCallbackOp;
+template <typename T, bool is_max>
+struct BlockPrefixPairCumCallbackOp;
 
-template <typename T> struct BlockPrefixPairCumCallbackOp<T, true> {
+template <typename T>
+struct BlockPrefixPairCumCallbackOp<T, true> {
   // Running prefix
   cub::KeyValuePair<int, T> running_total;
   // Constructor
-  __device__
-  BlockPrefixPairCumCallbackOp(cub::KeyValuePair<int, T> running_total)
+  __device__ BlockPrefixPairCumCallbackOp(
+      cub::KeyValuePair<int, T> running_total)
       : running_total(running_total) {}
   // Callback operator to be entered by the first warp of threads in the block.
   // Thread-0 is responsible for returning a value for seeding the block-wide
   // scan.
-  __device__ cub::KeyValuePair<int, T>
-  operator()(cub::KeyValuePair<int, T> block_aggregate) {
+  __device__ cub::KeyValuePair<int, T> operator()(
+      cub::KeyValuePair<int, T> block_aggregate) {
     cub::KeyValuePair<int, T> old_prefix = running_total;
     running_total = (block_aggregate.value > old_prefix.value) ? block_aggregate
                                                                : old_prefix;
@@ -32,18 +34,19 @@ template <typename T> struct BlockPrefixPairCumCallbackOp<T, true> {
   }
 };
 
-template <typename T> struct BlockPrefixPairCumCallbackOp<T, false> {
+template <typename T>
+struct BlockPrefixPairCumCallbackOp<T, false> {
   // Running prefix
   cub::KeyValuePair<int, T> running_total;
   // Constructor
-  __device__
-  BlockPrefixPairCumCallbackOp(cub::KeyValuePair<int, T> running_total)
+  __device__ BlockPrefixPairCumCallbackOp(
+      cub::KeyValuePair<int, T> running_total)
       : running_total(running_total) {}
   // Callback operator to be entered by the first warp of threads in the block.
   // Thread-0 is responsible for returning a value for seeding the block-wide
   // scan.
-  __device__ cub::KeyValuePair<int, T>
-  operator()(cub::KeyValuePair<int, T> block_aggregate) {
+  __device__ cub::KeyValuePair<int, T> operator()(
+      cub::KeyValuePair<int, T> block_aggregate) {
     cub::KeyValuePair<int, T> old_prefix = running_total;
     running_total = (block_aggregate.value < old_prefix.value) ? block_aggregate
                                                                : old_prefix;
@@ -56,7 +59,6 @@ __global__ void torch_cum_maxmin_warp_kernel(T *output, int *out_index,
                                              const T *input, size_t stride,
                                              int dim_size, size_t cum_size,
                                              const int cum_type) {
-
   // create block scan
   typedef cub::WarpScan<cub::KeyValuePair<int, T>> warpScan;
   __shared__ union {
@@ -119,7 +121,6 @@ template <typename T>
 void torch_cum_maxmin(T *output, int *index, const T *input, int *input_dims,
                       int nb_dims, int cum_dim, int cum_type,
                       cudaStream_t stream) {
-
   TensorSize ts_input_size;
   TensorStride input_stride;
   create_size_stride(input_dims, nb_dims, ts_input_size, input_stride);
@@ -143,5 +144,5 @@ template void torch_cum_maxmin<float>(float *output, int *index,
                                       int nb_dims, int cum_dim, int cum_type,
                                       cudaStream_t stream);
 
-} // namespace plugin
-} // namespace amirstan
+}  // namespace plugin
+}  // namespace amirstan

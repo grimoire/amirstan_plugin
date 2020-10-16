@@ -1,7 +1,7 @@
-#include <algorithm>
-#include <cmath>
 #include <cuda_fp16.h>
 #include <stdio.h>
+#include <algorithm>
+#include <cmath>
 
 #include "amir_cuda_util/cuda_util.h"
 #include "mesh_grid.h"
@@ -14,7 +14,6 @@ template <typename T>
 __global__ void arange_mesh_grid_kernel(T *output, size_t pre_stride,
                                         size_t post_stride, float start,
                                         float stride, size_t N) {
-
   CUDA_KERNEL_LOOP(i, N) {
     const size_t index = (i % pre_stride) / post_stride;
 
@@ -27,7 +26,6 @@ template <typename T>
 void arange_mesh_grid(T *output, const int *output_dims, int nb_dims,
                       int slice_dim, float start, float stride,
                       cudaStream_t stream) {
-
   size_t post_stride = 1;
   int i = nb_dims - 1;
   for (i = nb_dims - 1; i > slice_dim; --i) {
@@ -56,5 +54,5 @@ template void arange_mesh_grid<half>(half *output, const int *output_dims,
                                      int nb_dims, int slice_dim, float start,
                                      float stride, cudaStream_t stream);
 
-} // namespace plugin
-} // namespace amirstan
+}  // namespace plugin
+}  // namespace amirstan

@@ -12,7 +12,6 @@ void DeformRoIPoolForwardCUDAKernelLauncher(
     int pooled_height, int pooled_width, int output_size, int channels,
     int height, int width, float spatial_scale, int sampling_ratio, float gamma,
     cudaStream_t stream) {
-
   deform_roi_pool_forward_cuda_kernel<scalar_t>
       <<<GET_BLOCKS(output_size), CUDA_NUM_THREADS, 0, stream>>>(
           output_size, input, rois, offset, output, pooled_height, pooled_width,
@@ -30,5 +29,5 @@ void deform_roi_pool_forward(float *input, float *rois, float *offset,
       channels, height, width, spatial_scale, sampling_ratio, gamma, stream);
 }
 
-} // namespace plugin
-} // namespace amirstan
+}  // namespace plugin
+}  // namespace amirstan

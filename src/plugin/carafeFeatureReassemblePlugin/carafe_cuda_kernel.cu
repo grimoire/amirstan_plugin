@@ -1,17 +1,18 @@
-#include "carafe_cuda.h"
+#include <stdio.h>
 #include <algorithm>
 #include <cmath>
-#include <stdio.h>
+#include "carafe_cuda.h"
 
-#define CUDA_1D_KERNEL_LOOP(i, n)                                              \
-  for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < n;                   \
+
+#define CUDA_1D_KERNEL_LOOP(i, n)                            \
+  for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < n; \
        i += blockDim.x * gridDim.x)
 
-#define THREADS_PER_BLOCK 1024 // 32 * 32
+#define THREADS_PER_BLOCK 1024  // 32 * 32
 #define WARP_SIZE 32
 #define THREADS_PER_PIXEL 32
 #define MAX_SHARED_MEMORY 49152
-#define MAX_SHARED_SCALAR_T 6144 // 49152 / 8 = 6144
+#define MAX_SHARED_SCALAR_T 6144  // 49152 / 8 = 6144
 #define MAXIMIZE_KERNEL_SIZE true
 #define kTileDim 32
 #define kBlockRows 8
@@ -43,10 +44,11 @@ __device__ inline scalar_t max(scalar_t a, scalar_t b) {
 // Each block transposes one submatrix by loading it into shared memory.
 // Reference https://devblogs.nvidia.com/efficient-matrix-transpose-cuda-cc/
 template <typename scalar_t>
-__global__ void
-BatchTranspose2DCUDAKernel(const int N, const int H, const int W, const int dh,
-                           const int dw, const scalar_t *__restrict__ X,
-                           scalar_t *__restrict__ Y) {
+__global__ void BatchTranspose2DCUDAKernel(const int N, const int H,
+                                           const int W, const int dh,
+                                           const int dw,
+                                           const scalar_t *__restrict__ X,
+                                           scalar_t *__restrict__ Y) {
   __shared__ scalar_t tile[kTileDim][kTileDim + 1];
   const int n = blockIdx.x / (dh * dw);
   const int k = blockIdx.x % (dh * dw);
@@ -70,13 +72,12 @@ BatchTranspose2DCUDAKernel(const int N, const int H, const int W, const int dh,
   }
 }
 template <typename scalar_t>
-__global__ void
-CARAFEForward(const int num_kernels, const scalar_t *__restrict__ bottom_data,
-              const scalar_t *__restrict__ bottom_masks, const int kernel_size,
-              const int group_size, const int scale_factor, const int channels,
-              const int down_height, const int down_width, const int height,
-              const int width, const int mask_channels,
-              scalar_t *__restrict__ top_data) {
+__global__ void CARAFEForward(
+    const int num_kernels, const scalar_t *__restrict__ bottom_data,
+    const scalar_t *__restrict__ bottom_masks, const int kernel_size,
+    const int group_size, const int scale_factor, const int channels,
+    const int down_height, const int down_width, const int height,
+    const int width, const int mask_channels, scalar_t *__restrict__ top_data) {
 #if MAXIMIZE_KERNEL_SIZE
   __shared__ float shared_mask[MAX_SHARED_SCALAR_T * 2];
 #else
@@ -145,7 +146,6 @@ int CARAFEForwardLaucher(const T *features, const T *masks,
                          const int output_width, const int mask_channels,
                          T *rfeatures, T *routput, T *rmasks, T *output,
                          cudaStream_t stream) {
-
   // fill rfeature
   int dh = divideUP(channels, kTileDim);
   int dw = divideUP(input_height * input_width, kTileDim);
@@ -189,5 +189,5 @@ template int CARAFEForwardLaucher<float>(
     const int output_height, const int output_width, const int mask_channels,
     float *rfeatures, float *routput, float *rmasks, float *output,
     cudaStream_t stream);
-} // namespace plugin
-} // namespace amirstan
+}  // namespace plugin
+}  // namespace amirstan

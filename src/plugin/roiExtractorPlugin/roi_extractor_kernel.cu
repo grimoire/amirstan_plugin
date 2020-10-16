@@ -1,8 +1,9 @@
-#include "amir_cuda_util/cuda_util.h"
-#include "roi_extractor.h"
+#include <stdio.h>
 #include <algorithm>
 #include <cmath>
-#include <stdio.h>
+#include "amir_cuda_util/cuda_util.h"
+#include "roi_extractor.h"
+
 
 namespace amirstan {
 namespace plugin {
@@ -27,10 +28,8 @@ __device__ scalar_t bilinear_interpolate(const scalar_t *bottom_data,
     return 0;
   }
 
-  if (y <= 0)
-    y = 0;
-  if (x <= 0)
-    x = 0;
+  if (y <= 0) y = 0;
+  if (x <= 0) x = 0;
 
   int y_low = (int)y;
   int x_low = (int)x;
@@ -75,7 +74,6 @@ __device__ scalar_t roi_align_single(
     const scalar_t spatial_scale, const int pw, const int ph, const int c,
     const int sample_num, const int channels, const int height, const int width,
     const int pooled_height, const int pooled_width, const bool aligned) {
-
   // Force malformed ROIs to be 1x1
   scalar_t roi_width = fmaxf((scalar_t)roi_end_w - (scalar_t)roi_start_w, 0.);
   scalar_t roi_height = fmaxf((scalar_t)roi_end_h - (scalar_t)roi_start_h, 0.);
@@ -92,7 +90,7 @@ __device__ scalar_t roi_align_single(
 
   int sample_num_h = (sample_num > 0)
                          ? sample_num
-                         : ceil(roi_height / pooled_height); // e.g., = 2
+                         : ceil(roi_height / pooled_height);  // e.g., = 2
   int sample_num_w =
       (sample_num > 0) ? sample_num : ceil(roi_width / pooled_width);
 
@@ -118,12 +116,11 @@ __device__ scalar_t roi_align_single(
 }
 
 template <typename scalar_t>
-__global__ void
-roi_extractor_kernel(scalar_t *output, const scalar_t *bottom_rois,
-                     FeatData feat_data, const int sample_num,
-                     const float roi_scale_factor, const int finest_scale,
-                     const int pooled_height, const int pooled_width,
-                     const bool aligned, int nThreads) {
+__global__ void roi_extractor_kernel(
+    scalar_t *output, const scalar_t *bottom_rois, FeatData feat_data,
+    const int sample_num, const float roi_scale_factor, const int finest_scale,
+    const int pooled_height, const int pooled_width, const bool aligned,
+    int nThreads) {
   CUDA_KERNEL_LOOP(index, nThreads) {
     const int channels = feat_data.channels;
     const int pw = index % pooled_width;
@@ -214,5 +211,5 @@ template void roi_extractor<float>(float *output, const float *rois,
                                    float roi_scale_factor, int finest_scale,
                                    bool aligned, cudaStream_t stream);
 
-} // namespace plugin
-} // namespace amirstan
+}  // namespace plugin
+}  // namespace amirstan

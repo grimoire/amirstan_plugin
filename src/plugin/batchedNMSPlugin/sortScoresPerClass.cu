@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <vector>
 #include "bboxUtils.h"
 #include "cub/cub.cuh"
 #include "cub_helper.h"
 #include "kernel.h"
-#include <vector>
 
 template <typename T_SCORE, unsigned nthds_per_cta>
 __launch_bounds__(nthds_per_cta) __global__
@@ -72,12 +72,13 @@ __launch_bounds__(nthds_per_cta) __global__
 }
 
 template <typename T_SCORE>
-pluginStatus_t
-sortScoresPerClass_gpu(cudaStream_t stream, const int num,
-                       const int num_classes, const int num_preds_per_class,
-                       const int background_label_id,
-                       const float confidence_threshold, void *conf_scores_gpu,
-                       void *index_array_gpu, void *workspace) {
+pluginStatus_t sortScoresPerClass_gpu(cudaStream_t stream, const int num,
+                                      const int num_classes,
+                                      const int num_preds_per_class,
+                                      const int background_label_id,
+                                      const float confidence_threshold,
+                                      void *conf_scores_gpu,
+                                      void *index_array_gpu, void *workspace) {
   const int num_segments = num * num_classes;
   void *temp_scores = workspace;
   const int arrayLen = num * num_classes * num_preds_per_class;
@@ -131,12 +132,11 @@ bool sspcInit() {
 
 static bool initialized = sspcInit();
 
-pluginStatus_t
-sortScoresPerClass(cudaStream_t stream, const int num, const int num_classes,
-                   const int num_preds_per_class, const int background_label_id,
-                   const float confidence_threshold, const DataType DT_SCORE,
-                   void *conf_scores_gpu, void *index_array_gpu,
-                   void *workspace) {
+pluginStatus_t sortScoresPerClass(
+    cudaStream_t stream, const int num, const int num_classes,
+    const int num_preds_per_class, const int background_label_id,
+    const float confidence_threshold, const DataType DT_SCORE,
+    void *conf_scores_gpu, void *index_array_gpu, void *workspace) {
   sspcLaunchConfig lc = sspcLaunchConfig(DT_SCORE);
   for (unsigned i = 0; i < sspcFuncVec.size(); ++i) {
     if (lc == sspcFuncVec[i]) {
@@ -154,12 +154,12 @@ size_t sortScoresPerClassWorkspaceSize(const int num, const int num_classes,
                                        const DataType DT_CONF) {
   size_t wss[4];
   const int arrayLen = num * num_classes * num_preds_per_class;
-  wss[0] = arrayLen * dataTypeSize(DT_CONF);      // temp scores
-  wss[1] = arrayLen * sizeof(int);                // temp indices
-  wss[2] = (num * num_classes + 1) * sizeof(int); // offsets
+  wss[0] = arrayLen * dataTypeSize(DT_CONF);       // temp scores
+  wss[1] = arrayLen * sizeof(int);                 // temp indices
+  wss[2] = (num * num_classes + 1) * sizeof(int);  // offsets
   if (DT_CONF == DataType::kFLOAT) {
     wss[3] = cubSortPairsWorkspaceSize<float, int>(
-        arrayLen, num * num_classes); // cub workspace
+        arrayLen, num * num_classes);  // cub workspace
   } else {
     printf("SCORE type not supported\n");
     return (size_t)-1;

@@ -1,8 +1,8 @@
+#include <cuda_fp16.h>
+#include <stdio.h>
 #include <algorithm>
 #include <cmath>
 #include <cub/cub.cuh>
-#include <cuda_fp16.h>
-#include <stdio.h>
 
 #include "amir_cuda_util/cuda_util.h"
 #include "torch_nms.h"
@@ -11,7 +11,8 @@ namespace amirstan {
 namespace plugin {
 using namespace amirstan::cuda;
 
-template <typename T> struct Bbox {
+template <typename T>
+struct Bbox {
   T xmin, ymin, xmax, ymax;
   Bbox(T xmin, T ymin, T xmax, T ymax)
       : xmin(xmin), ymin(ymin), xmax(xmax), ymax(ymax) {}
@@ -79,7 +80,8 @@ __device__ float jaccardOverlap(const Bbox<T_BBOX> &bbox1,
   }
 }
 
-template <typename T> __global__ void arange(T *output, const size_t size) {
+template <typename T>
+__global__ void arange(T *output, const size_t size) {
   CUDA_KERNEL_LOOP(index, size) { output[index] = T(index); }
 }
 
@@ -87,7 +89,6 @@ template <typename T_SCORE, typename T_BBOX, int TSIZE>
 __global__ void nms_score_kernel(T_SCORE *scores, const T_BBOX *bbox_data,
                                  const int *score_index, int num_boxes,
                                  float iou_threshold) {
-
   extern __shared__ bool kept_bboxinfo_flag[];
 
   const int max_idx = num_boxes;
@@ -99,7 +100,6 @@ __global__ void nms_score_kernel(T_SCORE *scores, const T_BBOX *bbox_data,
   __syncthreads();
 #pragma unroll
   for (int t = 0; t < TSIZE; t++) {
-
     const int cur_idx = threadIdx.x + blockDim.x * t;
     const int item_idx = cur_idx;
 
@@ -182,7 +182,8 @@ __global__ void remove_negative_score(int *output, const T_SCORE *scores,
   }
 }
 
-template <typename T> size_t nms_workspace_size(int num_boxes) {
+template <typename T>
+size_t nms_workspace_size(int num_boxes) {
   size_t temp_storage_bytes = 0;
   void *d_temp_storage = nullptr;
   T *scores = nullptr;
@@ -255,5 +256,5 @@ template void torch_nms<float>(int *output, const float *bboxes,
                                const float *scores, int num_boxes,
                                float iou_threshold, void *workspace,
                                cudaStream_t stream);
-} // namespace plugin
-} // namespace amirstan
+}  // namespace plugin
+}  // namespace amirstan

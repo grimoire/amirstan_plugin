@@ -1,7 +1,7 @@
-#include <algorithm>
-#include <cmath>
 #include <cuda_fp16.h>
 #include <stdio.h>
+#include <algorithm>
+#include <cmath>
 
 #include "amir_cuda_util/cuda_util.h"
 #include "group_norm.h"
@@ -10,10 +10,11 @@ namespace amirstan {
 namespace plugin {
 using namespace amirstan::cuda;
 template <typename T>
-__global__ void
-group_norm_kernel(T *output, const T *input, size_t input_size, int batch_size,
-                  int num_groups, int num_channels, int WH, T eps, T *mean,
-                  T *var, const float *weight, const float *bias) {
+__global__ void group_norm_kernel(T *output, const T *input, size_t input_size,
+                                  int batch_size, int num_groups,
+                                  int num_channels, int WH, T eps, T *mean,
+                                  T *var, const float *weight,
+                                  const float *bias) {
   CUDA_KERNEL_LOOP(i, input_size) {
     const int mean_var_index = i / (num_channels * WH / num_groups);
     const int axpy_index = (i % (num_channels * WH)) / WH;
@@ -56,5 +57,5 @@ template void compute_group_norm<float>(float *output, const float *input,
 //     half eps,
 //     const float* weight,const float* bias,  cudaStream_t stream, void*
 //     workspace);
-} // namespace plugin
-} // namespace amirstan
+}  // namespace plugin
+}  // namespace amirstan

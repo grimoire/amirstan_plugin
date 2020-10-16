@@ -1,9 +1,9 @@
-#include "amir_cuda_util/cuda_util.h"
-#include "layer_norm.h"
-#include <algorithm>
-#include <cmath>
 #include <cuda_fp16.h>
 #include <stdio.h>
+#include <algorithm>
+#include <cmath>
+#include "amir_cuda_util/cuda_util.h"
+#include "layer_norm.h"
 
 namespace amirstan {
 namespace plugin {
@@ -54,5 +54,5 @@ template void compute_layer_norm<float>(float *output, const float *input,
 //         half eps,
 //          const half* weight,const half* bias,  cudaStream_t stream, void*
 //          workspace);
-} // namespace plugin
-} // namespace amirstan
+}  // namespace plugin
+}  // namespace amirstan

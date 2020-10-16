@@ -1,8 +1,9 @@
-#include "amir_cuda_util/cuda_util.h"
-#include "grid_anchor_dynamic.h"
+#include <stdio.h>
 #include <algorithm>
 #include <cmath>
-#include <stdio.h>
+#include "amir_cuda_util/cuda_util.h"
+#include "grid_anchor_dynamic.h"
+
 
 namespace amirstan {
 namespace plugin {
@@ -26,7 +27,6 @@ __global__ void grid_anchor_dynamic_kernel(T *output, const T *base_anchor,
 template <typename T>
 void grid_anchor_dynamic(T *output, const T *base_anchor, int width, int height,
                          int stride, int num_base_anchor, cudaStream_t stream) {
-
   size_t input_size = num_base_anchor * height * width;
   grid_anchor_dynamic_kernel<T>
       <<<GET_BLOCKS(input_size), CUDA_NUM_THREADS, 0, stream>>>(
@@ -39,5 +39,5 @@ template void grid_anchor_dynamic<float>(float *output,
                                          int num_base_anchor,
                                          cudaStream_t stream);
 
-} // namespace plugin
-} // namespace amirstan
+}  // namespace plugin
+}  // namespace amirstan

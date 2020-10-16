@@ -1,8 +1,8 @@
+#include <cuda_fp16.h>
+#include <stdio.h>
 #include <algorithm>
 #include <cmath>
 #include <cub/cub.cuh>
-#include <cuda_fp16.h>
-#include <stdio.h>
 
 #include "amir_cuda_util/cuda_util.h"
 #include "torch_cum.h"
@@ -11,7 +11,8 @@ namespace amirstan {
 namespace plugin {
 using namespace amirstan::cuda;
 
-template <typename T> struct CumScanProd {
+template <typename T>
+struct CumScanProd {
   __host__ __device__ __forceinline__ T operator()(const T &a, const T &b) {
     return a * b;
   }
@@ -21,7 +22,6 @@ template <typename T>
 __global__ void torch_cum_warp_kernel(T *output, const T *input, size_t stride,
                                       int dim_size, size_t cum_size,
                                       const int cum_type) {
-
   // create block scan
   typedef cub::WarpScan<T> warpScan;
   __shared__ union {
@@ -83,7 +83,6 @@ static void create_size_stride(const int *dims, int nb_dims, TensorSize &size,
 template <typename T>
 void torch_cum(T *output, const T *input, int *input_dims, int nb_dims,
                int cum_dim, int cum_type, cudaStream_t stream) {
-
   TensorSize ts_input_size;
   TensorStride input_stride;
   create_size_stride(input_dims, nb_dims, ts_input_size, input_stride);
@@ -106,5 +105,5 @@ template void torch_cum<float>(float *output, const float *input,
                                int *input_dims, int nb_dims, int cum_dim,
                                int cum_type, cudaStream_t stream);
 
-} // namespace plugin
-} // namespace amirstan
+}  // namespace plugin
+}  // namespace amirstan

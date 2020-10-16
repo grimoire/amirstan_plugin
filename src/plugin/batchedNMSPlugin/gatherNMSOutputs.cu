@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <vector>
 #include "gatherNMSOutputs.h"
 #include "kernel.h"
 #include "plugin.h"
-#include <vector>
 
 template <typename T_BBOX, typename T_SCORE, unsigned nthds_per_cta>
 __launch_bounds__(nthds_per_cta) __global__
@@ -28,8 +28,7 @@ __launch_bounds__(nthds_per_cta) __global__
                                  int *numDetections, T_BBOX *nmsedBoxes,
                                  T_BBOX *nmsedScores, T_BBOX *nmsedClasses,
                                  bool clipBoxes) {
-  if (keepTopK > topK)
-    return;
+  if (keepTopK > topK) return;
   for (int i = blockIdx.x * nthds_per_cta + threadIdx.x;
        i < numImages * keepTopK; i += gridDim.x * nthds_per_cta) {
     const int imgId = i / keepTopK;
@@ -53,9 +52,9 @@ __launch_bounds__(nthds_per_cta) __global__
                           : index % (numClasses * numPredsPerClass)) +
            bboxOffset) *
           4;
-      nmsedClasses[i] =
-          (index % (numClasses * numPredsPerClass)) / numPredsPerClass; // label
-      nmsedScores[i] = score; // confidence score
+      nmsedClasses[i] = (index % (numClasses * numPredsPerClass)) /
+                        numPredsPerClass;  // label
+      nmsedScores[i] = score;              // confidence score
       // clipped bbox xmin
       nmsedBoxes[i * 4] =
           clipBoxes ? max(min(bboxData[bboxId], T_BBOX(1.)), T_BBOX(0.))

@@ -1,7 +1,7 @@
-#include <algorithm>
-#include <cmath>
 #include <cuda_fp16.h>
 #include <stdio.h>
+#include <algorithm>
+#include <cmath>
 
 #include "amir_cuda_util/cuda_util.h"
 #include "grid_sample.h"
@@ -231,9 +231,10 @@ static __forceinline__ __device__ void safe_add_2d(scalar_t *data, int h, int w,
 }
 
 template <typename scalar_t>
-static __forceinline__ __device__ void
-safe_add_3d(scalar_t *data, int d, int h, int w, int sD, int sH, int sW, int D,
-            int H, int W, scalar_t delta) {
+static __forceinline__ __device__ void safe_add_3d(scalar_t *data, int d, int h,
+                                                   int w, int sD, int sH,
+                                                   int sW, int D, int H, int W,
+                                                   scalar_t delta) {
   if (within_bounds_3d(d, h, w, D, H, W)) {
     atomicAdd(data + d * sD + h * sH + w * sW, delta);
   }
@@ -250,7 +251,6 @@ __global__ void grid_sampler_2d_kernel(
     TensorStride output_stride,
     const GridSamplerInterpolation interpolation_mode,
     const GridSamplerPadding padding_mode, bool align_corners) {
-
   int C = input_size.size[1];
   int inp_H = input_size.size[2];
   int inp_W = input_size.size[3];
@@ -347,7 +347,6 @@ __global__ void grid_sampler_3d_kernel(
     TensorStride output_stride,
     const GridSamplerInterpolation interpolation_mode,
     const GridSamplerPadding padding_mode, bool align_corners) {
-
   int C = input_size.size[1];
   int inp_D = input_size.size[2];
   int inp_H = input_size.size[3];
@@ -530,7 +529,6 @@ void grid_sample(T *output, const T *input, const T *grid, int *output_dims,
                  int *input_dims, int *grid_dims, int nb_dims,
                  GridSamplerInterpolation interp, GridSamplerPadding padding,
                  bool align_corners, cudaStream_t stream) {
-
   TensorSize ts_input_size;
   TensorStride input_stride;
   create_size_stride(input_dims, nb_dims, ts_input_size, input_stride);
@@ -571,5 +569,5 @@ template void grid_sample<float>(float *output, const float *input,
                                  GridSamplerInterpolation interp,
                                  GridSamplerPadding padding, bool align_corners,
                                  cudaStream_t stream);
-} // namespace plugin
-} // namespace amirstan
+}  // namespace plugin
+}  // namespace amirstan

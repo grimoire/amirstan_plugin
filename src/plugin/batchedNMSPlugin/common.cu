@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <stdint.h>
+#include <cub/cub.cuh>
 #include "bboxUtils.h"
 #include "cublas_v2.h"
 #include "kernel.h"
-#include <cub/cub.cuh>
-#include <stdint.h>
 
 #define CUDA_MEM_ALIGN 256
 
@@ -76,14 +76,14 @@ using nvinfer1::DataType;
 // DATA TYPE SIZE
 size_t dataTypeSize(const DataType dtype) {
   switch (dtype) {
-  case DataType::kINT8:
-    return sizeof(char);
-  case DataType::kHALF:
-    return sizeof(short);
-  case DataType::kFLOAT:
-    return sizeof(float);
-  default:
-    return 0;
+    case DataType::kINT8:
+      return sizeof(char);
+    case DataType::kHALF:
+      return sizeof(short);
+    case DataType::kFLOAT:
+      return sizeof(float);
+    default:
+      return 0;
   }
 }
 
@@ -121,8 +121,7 @@ __launch_bounds__(nthds_per_cta) __global__
     void setUniformOffsets_kernel(const int num_segments, const int offset,
                                   int *d_offsets) {
   const int idx = blockIdx.x * nthds_per_cta + threadIdx.x;
-  if (idx <= num_segments)
-    d_offsets[idx] = idx * offset;
+  if (idx <= num_segments) d_offsets[idx] = idx * offset;
 }
 
 void setUniformOffsets(cudaStream_t stream, const int num_segments,
@@ -135,29 +134,29 @@ void setUniformOffsets(cudaStream_t stream, const int num_segments,
 
 const char *cublasGetErrorString(cublasStatus_t error) {
   switch (error) {
-  case CUBLAS_STATUS_SUCCESS:
-    return "CUBLAS_STATUS_SUCCESS";
-  case CUBLAS_STATUS_NOT_INITIALIZED:
-    return "CUBLAS_STATUS_NOT_INITIALIZED";
-  case CUBLAS_STATUS_ALLOC_FAILED:
-    return "CUBLAS_STATUS_ALLOC_FAILED";
-  case CUBLAS_STATUS_INVALID_VALUE:
-    return "CUBLAS_STATUS_INVALID_VALUE";
-  case CUBLAS_STATUS_ARCH_MISMATCH:
-    return "CUBLAS_STATUS_ARCH_MISMATCH";
-  case CUBLAS_STATUS_MAPPING_ERROR:
-    return "CUBLAS_STATUS_MAPPING_ERROR";
-  case CUBLAS_STATUS_EXECUTION_FAILED:
-    return "CUBLAS_STATUS_EXECUTION_FAILED";
-  case CUBLAS_STATUS_INTERNAL_ERROR:
-    return "CUBLAS_STATUS_INTERNAL_ERROR";
+    case CUBLAS_STATUS_SUCCESS:
+      return "CUBLAS_STATUS_SUCCESS";
+    case CUBLAS_STATUS_NOT_INITIALIZED:
+      return "CUBLAS_STATUS_NOT_INITIALIZED";
+    case CUBLAS_STATUS_ALLOC_FAILED:
+      return "CUBLAS_STATUS_ALLOC_FAILED";
+    case CUBLAS_STATUS_INVALID_VALUE:
+      return "CUBLAS_STATUS_INVALID_VALUE";
+    case CUBLAS_STATUS_ARCH_MISMATCH:
+      return "CUBLAS_STATUS_ARCH_MISMATCH";
+    case CUBLAS_STATUS_MAPPING_ERROR:
+      return "CUBLAS_STATUS_MAPPING_ERROR";
+    case CUBLAS_STATUS_EXECUTION_FAILED:
+      return "CUBLAS_STATUS_EXECUTION_FAILED";
+    case CUBLAS_STATUS_INTERNAL_ERROR:
+      return "CUBLAS_STATUS_INTERNAL_ERROR";
 #if CUDA_VERSION >= 6000
-  case CUBLAS_STATUS_NOT_SUPPORTED:
-    return "CUBLAS_STATUS_NOT_SUPPORTED";
+    case CUBLAS_STATUS_NOT_SUPPORTED:
+      return "CUBLAS_STATUS_NOT_SUPPORTED";
 #endif
 #if CUDA_VERSION >= 6050
-  case CUBLAS_STATUS_LICENSE_ERROR:
-    return "CUBLAS_STATUS_LICENSE_ERROR";
+    case CUBLAS_STATUS_LICENSE_ERROR:
+      return "CUBLAS_STATUS_LICENSE_ERROR";
 #endif
   }
   return "Unknown cublas status";

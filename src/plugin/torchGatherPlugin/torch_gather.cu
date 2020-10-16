@@ -1,7 +1,7 @@
-#include <algorithm>
-#include <cmath>
 #include <cuda_fp16.h>
 #include <stdio.h>
+#include <algorithm>
+#include <cmath>
 
 #include "amir_cuda_util/cuda_util.h"
 #include "torch_gather.h"
@@ -15,10 +15,11 @@ using amirstan::cuda::TensorSize;
 using amirstan::cuda::TensorStride;
 
 template <typename T>
-__global__ void
-torch_gather_kernel(T *dst, const T *src, const int *gather_table, int dim,
-                    TensorStride input_stride, TensorStride output_stride,
-                    int nb_dims, int num_output) {
+__global__ void torch_gather_kernel(T *dst, const T *src,
+                                    const int *gather_table, int dim,
+                                    TensorStride input_stride,
+                                    TensorStride output_stride, int nb_dims,
+                                    int num_output) {
   size_t *src_stride = &(input_stride.size[0]);
   size_t *dst_stride = &(output_stride.size[0]);
 
@@ -43,7 +44,6 @@ template <typename T>
 void torch_gather(T *output, const T *input, const int *index, int dim,
                   int *input_dims, int *index_dims, int nb_dims,
                   cudaStream_t stream) {
-
   TensorSize ts_input_size;
   TensorStride input_stride;
 
@@ -84,5 +84,5 @@ template void torch_gather<int>(int *output, const int *input, const int *index,
                                 int dim, int *input_dims, int *index_dims,
                                 int nb_dims, cudaStream_t stream);
 
-} // namespace plugin
-} // namespace amirstan
+}  // namespace plugin
+}  // namespace amirstan

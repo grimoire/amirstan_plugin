@@ -1,8 +1,9 @@
-#include "amir_cuda_util/cuda_util.h"
-#include "roi_pool.h"
+#include <stdio.h>
 #include <algorithm>
 #include <cmath>
-#include <stdio.h>
+#include "amir_cuda_util/cuda_util.h"
+#include "roi_pool.h"
+
 
 namespace amirstan {
 namespace plugin {
@@ -27,10 +28,8 @@ __device__ scalar_t bilinear_interpolate(const scalar_t *bottom_data,
     return 0;
   }
 
-  if (y <= 0)
-    y = 0;
-  if (x <= 0)
-    x = 0;
+  if (y <= 0) y = 0;
+  if (x <= 0) x = 0;
 
   int y_low = (int)y;
   int x_low = (int)x;
@@ -75,7 +74,6 @@ __device__ scalar_t roi_pool_single(
     const scalar_t spatial_scale, const int pw, const int ph, const int c,
     const int channels, const int height, const int width,
     const int pooled_height, const int pooled_width) {
-
   // Force malformed ROIs to be 1x1
   scalar_t roi_width = fmaxf((scalar_t)roi_end_w - (scalar_t)roi_start_w, 0.);
   scalar_t roi_height = fmaxf((scalar_t)roi_end_h - (scalar_t)roi_start_h, 0.);
@@ -210,5 +208,5 @@ template void roi_pool<float>(float *output, const float *rois, int num_rois,
                               int out_size, float roi_scale_factor,
                               int finest_scale, cudaStream_t stream);
 
-} // namespace plugin
-} // namespace amirstan
+}  // namespace plugin
+}  // namespace amirstan

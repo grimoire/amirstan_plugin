@@ -1,8 +1,9 @@
-#include "amir_cuda_util/cuda_util.h"
-#include "delta2bbox.h"
+#include <stdio.h>
 #include <algorithm>
 #include <cmath>
-#include <stdio.h>
+#include "amir_cuda_util/cuda_util.h"
+#include "delta2bbox.h"
+
 
 namespace amirstan {
 namespace plugin {
@@ -33,12 +34,12 @@ __device__ __forceinline__ scalar_t softmax_custom(const scalar_t *data_start,
 }
 
 template <typename T>
-__global__ void
-delta2bbox_kernel(T *out_cls, T *out_bbox, const T *in_cls, const T *in_bbox,
-                  const T *anchor, const int *clip_range, int batch_size,
-                  int num_bbox, int num_outbbox, int num_classes,
-                  int num_ratios, bool use_segmoid_cls, SMeanStd mean_std) {
-
+__global__ void delta2bbox_kernel(T *out_cls, T *out_bbox, const T *in_cls,
+                                  const T *in_bbox, const T *anchor,
+                                  const int *clip_range, int batch_size,
+                                  int num_bbox, int num_outbbox,
+                                  int num_classes, int num_ratios,
+                                  bool use_segmoid_cls, SMeanStd mean_std) {
   const T max_ratio = abs(logf(16. / 1000.));
   const int out_batch_stride = num_outbbox * num_classes;
   const int out_bbox_stride = num_classes * num_ratios;
@@ -154,5 +155,5 @@ template void delta2bbox<float>(float *out_cls, float *out_bbox,
                                 int num_classes, int num_ratios,
                                 bool use_segmoid_cls, float *mean, float *std,
                                 cudaStream_t stream);
-} // namespace plugin
-} // namespace amirstan
+}  // namespace plugin
+}  // namespace amirstan

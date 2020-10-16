@@ -1,8 +1,9 @@
-#include <algorithm>
-#include <cmath>
 #include <float.h>
 #include <math.h>
 #include <stdio.h>
+#include <algorithm>
+#include <cmath>
+
 
 #include "amir_cuda_util/cuda_util.h"
 
@@ -13,7 +14,6 @@ __device__ scalar_t deformable_im2col_bilinear(const scalar_t *bottom_data,
                                                const int height,
                                                const int width, scalar_t h,
                                                scalar_t w) {
-
   const int h_low = floor(h);
   const int w_low = floor(w);
   const int h_high = h_low + 1;
@@ -24,8 +24,7 @@ __device__ scalar_t deformable_im2col_bilinear(const scalar_t *bottom_data,
   const scalar_t hh = 1 - lh, hw = 1 - lw;
 
   scalar_t v1 = 0;
-  if (h_low >= 0 && w_low >= 0)
-    v1 = bottom_data[h_low * data_width + w_low];
+  if (h_low >= 0 && w_low >= 0) v1 = bottom_data[h_low * data_width + w_low];
   scalar_t v2 = 0;
   if (h_low >= 0 && w_high <= width - 1)
     v2 = bottom_data[h_low * data_width + w_high];
@@ -119,8 +118,7 @@ __device__ scalar_t dmcn_im2col_bilinear(const scalar_t *bottom_data,
   scalar_t hh = 1 - lh, hw = 1 - lw;
 
   scalar_t v1 = 0;
-  if (h_low >= 0 && w_low >= 0)
-    v1 = bottom_data[h_low * data_width + w_low];
+  if (h_low >= 0 && w_low >= 0) v1 = bottom_data[h_low * data_width + w_low];
   scalar_t v2 = 0;
   if (h_low >= 0 && w_high <= width - 1)
     v2 = bottom_data[h_low * data_width + w_high];
@@ -213,7 +211,6 @@ template <typename scalar_t>
 __global__ void output_add_bias_kernel(scalar_t *output, scalar_t *bias,
                                        size_t step_batch, size_t step_channel,
                                        size_t n) {
-
   CUDA_KERNEL_LOOP(index, n) {
     output[index] += bias[(index % step_batch) / step_channel];
   }

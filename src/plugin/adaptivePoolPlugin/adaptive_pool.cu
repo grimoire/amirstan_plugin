@@ -1,7 +1,7 @@
-#include <algorithm>
-#include <cmath>
 #include <cuda_fp16.h>
 #include <stdio.h>
+#include <algorithm>
+#include <cmath>
 
 #include "adaptive_pool.h"
 #include "amir_cuda_util/cuda_util.h"
@@ -16,27 +16,32 @@ using namespace amirstan::cuda;
 using amirstan::cuda::TensorSize;
 using amirstan::cuda::TensorStride;
 
-template <typename T> __host__ __device__ __forceinline__ T ceilDiv(T a, T b) {
+template <typename T>
+__host__ __device__ __forceinline__ T ceilDiv(T a, T b) {
   return (a + b - 1) / b;
 }
 
-template <typename T> struct idleOp {
+template <typename T>
+struct idleOp {
   inline __device__ T operator()(const T &x, size_t reduce_count = 0) {
     return x;
   }
 };
 
-template <typename T> struct maxOp {
+template <typename T>
+struct maxOp {
   inline __device__ T operator()(const T &x, const T &y) {
     return x > y ? x : y;
   }
 };
 
-template <typename T> struct sumOp {
+template <typename T>
+struct sumOp {
   inline __device__ T operator()(const T &x, const T &y) { return x + y; }
 };
 
-template <typename T> struct divCountOp {
+template <typename T>
+struct divCountOp {
   inline __device__ T operator()(const T &x, size_t reduce_count = 0) {
     return x / reduce_count;
   }
@@ -50,7 +55,6 @@ __global__ void adaptive_pool_kernel(
     int nb_reduce_dims, int cell_per_block, int thread_per_cell,
     PreReduceOp pre_reduce_op, ReduceOp reduce_op, PostReduceOp post_reduce_op,
     size_t N) {
-
   const int REDUCE_MAX_COUNT = 10;
   float reduce_size[REDUCE_MAX_COUNT];
   float reduce_stride[REDUCE_MAX_COUNT];
@@ -121,7 +125,6 @@ __global__ void adaptive_pool_kernel(
     }
 
     if (cell_thread_id == 0) {
-
       // for(int i=1;i<min(size_t(thread_per_cell),size_t(cell_count));++i){
       //     smemChar[threadIdx.x]=reduce_op(smemChar[threadIdx.x],
       //     smemChar[threadIdx.x+i]);
@@ -135,7 +138,6 @@ template <typename T>
 void adaptive_pool(T *output, const T *input, int *input_dims, int *output_dims,
                    int nb_dims, int nb_reduce_dims, PoolType pool_type,
                    cudaStream_t stream) {
-
   TensorSize ts_input_size;
   TensorStride input_stride;
 
@@ -175,23 +177,23 @@ void adaptive_pool(T *output, const T *input, int *input_dims, int *output_dims,
   num_block = min(num_block, kMaxGridNum);
 
   switch (pool_type) {
-  case PoolType::MAX:
-    adaptive_pool_kernel<T, idleOp<T>, maxOp<T>, idleOp<T>>
-        <<<num_block, CUDA_NUM_THREADS, share_size, stream>>>(
-            output, input, ts_input_size, input_stride, ts_output_size,
-            output_stride, nb_dims, nb_reduce_dims, cell_per_block,
-            thread_per_cell, idleOp<T>(), maxOp<T>(), idleOp<T>(), num_cell);
-    break;
-  case PoolType::AVERAGE:
-    adaptive_pool_kernel<T, idleOp<T>, sumOp<T>, divCountOp<T>>
-        <<<num_block, CUDA_NUM_THREADS, share_size, stream>>>(
-            output, input, ts_input_size, input_stride, ts_output_size,
-            output_stride, nb_dims, nb_reduce_dims, cell_per_block,
-            thread_per_cell, idleOp<T>(), sumOp<T>(), divCountOp<T>(),
-            num_cell);
-    break;
-  default:
-    break;
+    case PoolType::MAX:
+      adaptive_pool_kernel<T, idleOp<T>, maxOp<T>, idleOp<T>>
+          <<<num_block, CUDA_NUM_THREADS, share_size, stream>>>(
+              output, input, ts_input_size, input_stride, ts_output_size,
+              output_stride, nb_dims, nb_reduce_dims, cell_per_block,
+              thread_per_cell, idleOp<T>(), maxOp<T>(), idleOp<T>(), num_cell);
+      break;
+    case PoolType::AVERAGE:
+      adaptive_pool_kernel<T, idleOp<T>, sumOp<T>, divCountOp<T>>
+          <<<num_block, CUDA_NUM_THREADS, share_size, stream>>>(
+              output, input, ts_input_size, input_stride, ts_output_size,
+              output_stride, nb_dims, nb_reduce_dims, cell_per_block,
+              thread_per_cell, idleOp<T>(), sumOp<T>(), divCountOp<T>(),
+              num_cell);
+      break;
+    default:
+      break;
   }
 }
 
@@ -200,5 +202,5 @@ template void adaptive_pool<float>(float *output, const float *input,
                                    int nb_dims, int nb_reduce_dims,
                                    PoolType pool_type, cudaStream_t stream);
 
-} // namespace plugin
-} // namespace amirstan
+}  // namespace plugin
+}  // namespace amirstan

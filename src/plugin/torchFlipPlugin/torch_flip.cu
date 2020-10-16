@@ -1,7 +1,7 @@
-#include <algorithm>
-#include <cmath>
 #include <cuda_fp16.h>
 #include <stdio.h>
+#include <algorithm>
+#include <cmath>
 
 #include "amir_cuda_util/cuda_util.h"
 #include "torch_flip.h"
@@ -11,17 +11,16 @@ namespace plugin {
 using namespace amirstan::cuda;
 
 template <typename T>
-__global__ void
-torch_flip_kernel(T *output, const T *input, const TensorSize input_size,
-                  const TensorStride input_stride, const TensorSize flip_mask,
-                  int nb_dims, int count) {
-
+__global__ void torch_flip_kernel(T *output, const T *input,
+                                  const TensorSize input_size,
+                                  const TensorStride input_stride,
+                                  const TensorSize flip_mask, int nb_dims,
+                                  int count) {
   const int *in_size = &(input_size.size[0]);
   const size_t *stride = &(input_stride.size[0]);
   const int *mask = &(flip_mask.size[0]);
 
   CUDA_KERNEL_LOOP(index, count) {
-
     size_t dst_index = index;
     size_t src_index = 0;
     for (int i = 0; i < nb_dims; ++i) {
@@ -51,7 +50,6 @@ static void create_size_stride(const int *dims, int nb_dims, TensorSize &size,
 template <typename T>
 void torch_flip(T *output, const T *input, int *input_dims, int nb_dims,
                 int *flip_dims, int nb_flip_dims, cudaStream_t stream) {
-
   TensorSize ts_input_size;
   TensorStride input_stride;
   create_size_stride(input_dims, nb_dims, ts_input_size, input_stride);
@@ -77,5 +75,5 @@ template void torch_flip<float>(float *output, const float *input,
                                 int *input_dims, int nb_dims, int *flip_dims,
                                 int nb_flip_dims, cudaStream_t stream);
 
-} // namespace plugin
-} // namespace amirstan
+}  // namespace plugin
+}  // namespace amirstan

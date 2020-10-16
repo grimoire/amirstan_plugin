@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <vector>
 #include "bboxUtils.h"
 #include "cub/cub.cuh"
 #include "cub_helper.h"
 #include "kernel.h"
-#include <vector>
 
 template <typename T_SCORE>
-pluginStatus_t
-sortScoresPerImage_gpu(cudaStream_t stream, const int num_images,
-                       const int num_items_per_image, void *unsorted_scores,
-                       void *unsorted_bbox_indices, void *sorted_scores,
-                       void *sorted_bbox_indices, void *workspace) {
+pluginStatus_t sortScoresPerImage_gpu(
+    cudaStream_t stream, const int num_images, const int num_items_per_image,
+    void *unsorted_scores, void *unsorted_bbox_indices, void *sorted_scores,
+    void *sorted_bbox_indices, void *workspace) {
   void *d_offsets = workspace;
   void *cubWorkspace =
       nextWorkspacePtr((int8_t *)d_offsets, (num_images + 1) * sizeof(int));
@@ -89,10 +88,11 @@ size_t sortScoresPerImageWorkspaceSize(const int num_images,
                                        const DataType DT_SCORE) {
   const int arrayLen = num_images * num_items_per_image;
   size_t wss[2];
-  wss[0] = (num_images + 1) * sizeof(int); // offsets
+  wss[0] = (num_images + 1) * sizeof(int);  // offsets
   if (DT_SCORE == DataType::kFLOAT) {
-    wss[1] = cubSortPairsWorkspaceSize<float, int>(arrayLen,
-                                                   num_images); // cub workspace
+    wss[1] =
+        cubSortPairsWorkspaceSize<float, int>(arrayLen,
+                                              num_images);  // cub workspace
   } else {
     printf("SCORE type not supported.\n");
     return (size_t)-1;
