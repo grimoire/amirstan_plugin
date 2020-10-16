@@ -5,7 +5,6 @@
 
 #include "amir_cuda_util/cuda_util.h"
 
-
 namespace amirstan {
 namespace cuda {
 
