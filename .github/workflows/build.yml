@@ -1,0 +1,15 @@
+name: build
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Format c/cuda codes with clang-format
+        uses: DoozyX/clang-format-lint-action@v0.6
+        with:
+          source: src include
+          extensions: h,c,cpp,hpp,cu,cuh
+          style: google
