@@ -19,9 +19,13 @@
 using namespace nvinfer1;
 using namespace nvinfer1::plugin;
 
-pluginStatus_t gatherNMSOutputs(cudaStream_t stream, bool shareLocation, int numImages, int numPredsPerClass,
-    int numClasses, int topK, int keepTopK, DataType DT_BBOX, DataType DT_SCORE, const void* indices,
-    const void* scores, const void* bboxData, void* keepCount, void* nmsedBoxes, void* nmsedScores, void* nmsedClasses,
-    bool clipBoxes = true);
+pluginStatus_t gatherNMSOutputs(cudaStream_t stream, bool shareLocation,
+                                int numImages, int numPredsPerClass,
+                                int numClasses, int topK, int keepTopK,
+                                DataType DT_BBOX, DataType DT_SCORE,
+                                const void* indices, const void* scores,
+                                const void* bboxData, void* keepCount,
+                                void* nmsedBoxes, void* nmsedScores,
+                                void* nmsedClasses, bool clipBoxes = true);
 
 #endif

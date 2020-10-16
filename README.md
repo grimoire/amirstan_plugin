@@ -30,12 +30,12 @@ either
 
 - cmake base version
   ```shell
-  cmake -DTENSORRT_DIR=<path_to_tensorrt> ..
+  cmake -DTENSORRT_DIR=${path_to_tensorrt} ..
   ```
 
 - or with deepstream support
   ```shell
-  cmake -DTENSORRT_DIR=<path_to_tensorrt> -DWITH_DEEPSTREAM=true -DDeepStream_DIR=<path_to_deepstream> ..
+  cmake -DTENSORRT_DIR=${path_to_tensorrt} -DWITH_DEEPSTREAM=true -DDeepStream_DIR=${path_to_deepstream} ..
   ```
 
 make the plugins

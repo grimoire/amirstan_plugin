@@ -1,103 +1,114 @@
 #pragma once
 
-#include "NvInferPlugin.h"
+#include <cublas_v2.h>
+
+#include <memory>
 #include <string>
 #include <vector>
-#include <cublas_v2.h>
-#include <memory>
 
-namespace amirstan
-{
-namespace plugin
-{
+#include "NvInferPlugin.h"
+
+namespace amirstan {
+namespace plugin {
 
 // cumtype:
 //  sum: 0
 //  prod: 1
 
-class TorchCumPluginDynamic : public nvinfer1::IPluginV2DynamicExt
-{
-public:
-    TorchCumPluginDynamic(
-        const std::string &name, int dim, int cumType);
+class TorchCumPluginDynamic : public nvinfer1::IPluginV2DynamicExt {
+ public:
+  TorchCumPluginDynamic(const std::string &name, int dim, int cumType);
 
-    TorchCumPluginDynamic(const std::string name, const void *data, size_t length);
+  TorchCumPluginDynamic(const std::string name, const void *data,
+                        size_t length);
 
-    // It doesn't make sense to make TorchCumPluginDynamic without arguments, so we
-    // delete default constructor.
-    TorchCumPluginDynamic() = delete;
+  // It doesn't make sense to make TorchCumPluginDynamic without arguments, so
+  // we delete default constructor.
+  TorchCumPluginDynamic() = delete;
 
-    // IPluginV2DynamicExt Methods
-    nvinfer1::IPluginV2DynamicExt *clone() const override;
-    nvinfer1::DimsExprs getOutputDimensions(
-        int outputIndex, const nvinfer1::DimsExprs *inputs, int nbInputs, nvinfer1::IExprBuilder &exprBuilder) override;
-    bool supportsFormatCombination(
-        int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs, int nbOutputs) override;
-    void configurePlugin(const nvinfer1::DynamicPluginTensorDesc *in, int nbInputs,
-                         const nvinfer1::DynamicPluginTensorDesc *out, int nbOutputs) override;
-    size_t getWorkspaceSize(const nvinfer1::PluginTensorDesc *inputs, int nbInputs,
-                            const nvinfer1::PluginTensorDesc *outputs, int nbOutputs) const override;
-    int enqueue(const nvinfer1::PluginTensorDesc *inputDesc, const nvinfer1::PluginTensorDesc *outputDesc,
-                const void *const *inputs, void *const *outputs, void *workspace, cudaStream_t stream) override;
+  // IPluginV2DynamicExt Methods
+  nvinfer1::IPluginV2DynamicExt *clone() const override;
+  nvinfer1::DimsExprs getOutputDimensions(
+      int outputIndex, const nvinfer1::DimsExprs *inputs, int nbInputs,
+      nvinfer1::IExprBuilder &exprBuilder) override;
+  bool supportsFormatCombination(int pos,
+                                 const nvinfer1::PluginTensorDesc *inOut,
+                                 int nbInputs, int nbOutputs) override;
+  void configurePlugin(const nvinfer1::DynamicPluginTensorDesc *in,
+                       int nbInputs,
+                       const nvinfer1::DynamicPluginTensorDesc *out,
+                       int nbOutputs) override;
+  size_t getWorkspaceSize(const nvinfer1::PluginTensorDesc *inputs,
+                          int nbInputs,
+                          const nvinfer1::PluginTensorDesc *outputs,
+                          int nbOutputs) const override;
+  int enqueue(const nvinfer1::PluginTensorDesc *inputDesc,
+              const nvinfer1::PluginTensorDesc *outputDesc,
+              const void *const *inputs, void *const *outputs, void *workspace,
+              cudaStream_t stream) override;
 
-    // IPluginV2Ext Methods
-    nvinfer1::DataType getOutputDataType(int index, const nvinfer1::DataType *inputTypes, int nbInputs) const override;
+  // IPluginV2Ext Methods
+  nvinfer1::DataType getOutputDataType(int index,
+                                       const nvinfer1::DataType *inputTypes,
+                                       int nbInputs) const override;
 
-    // IPluginV2 Methods
-    const char *getPluginType() const override;
-    const char *getPluginVersion() const override;
-    int getNbOutputs() const override;
-    int initialize() override;
-    void terminate() override;
-    size_t getSerializationSize() const override;
-    void serialize(void *buffer) const override;
-    void destroy() override;
-    void setPluginNamespace(const char *pluginNamespace) override;
-    const char *getPluginNamespace() const override;
+  // IPluginV2 Methods
+  const char *getPluginType() const override;
+  const char *getPluginVersion() const override;
+  int getNbOutputs() const override;
+  int initialize() override;
+  void terminate() override;
+  size_t getSerializationSize() const override;
+  void serialize(void *buffer) const override;
+  void destroy() override;
+  void setPluginNamespace(const char *pluginNamespace) override;
+  const char *getPluginNamespace() const override;
 
-private:
-    const std::string mLayerName;
-    std::string mNamespace;
+ private:
+  const std::string mLayerName;
+  std::string mNamespace;
 
-    int mDim;
-    int mCumType;
+  int mDim;
+  int mCumType;
 
-protected:
-    // To prevent compiler warnings.
-    using nvinfer1::IPluginV2DynamicExt::canBroadcastInputAcrossBatch;
-    using nvinfer1::IPluginV2DynamicExt::configurePlugin;
-    using nvinfer1::IPluginV2DynamicExt::enqueue;
-    using nvinfer1::IPluginV2DynamicExt::getOutputDimensions;
-    using nvinfer1::IPluginV2DynamicExt::getWorkspaceSize;
-    using nvinfer1::IPluginV2DynamicExt::isOutputBroadcastAcrossBatch;
-    using nvinfer1::IPluginV2DynamicExt::supportsFormat;
+ protected:
+  // To prevent compiler warnings.
+  using nvinfer1::IPluginV2DynamicExt::canBroadcastInputAcrossBatch;
+  using nvinfer1::IPluginV2DynamicExt::configurePlugin;
+  using nvinfer1::IPluginV2DynamicExt::enqueue;
+  using nvinfer1::IPluginV2DynamicExt::getOutputDimensions;
+  using nvinfer1::IPluginV2DynamicExt::getWorkspaceSize;
+  using nvinfer1::IPluginV2DynamicExt::isOutputBroadcastAcrossBatch;
+  using nvinfer1::IPluginV2DynamicExt::supportsFormat;
 };
 
-class TorchCumPluginDynamicCreator : public nvinfer1::IPluginCreator
-{
-public:
-    TorchCumPluginDynamicCreator();
+class TorchCumPluginDynamicCreator : public nvinfer1::IPluginCreator {
+ public:
+  TorchCumPluginDynamicCreator();
 
-    const char *getPluginName() const override;
+  const char *getPluginName() const override;
 
-    const char *getPluginVersion() const override;
+  const char *getPluginVersion() const override;
 
-    const nvinfer1::PluginFieldCollection *getFieldNames() override;
+  const nvinfer1::PluginFieldCollection *getFieldNames() override;
 
-    nvinfer1::IPluginV2 *createPlugin(const char *name, const nvinfer1::PluginFieldCollection *fc) override;
+  nvinfer1::IPluginV2 *createPlugin(
+      const char *name, const nvinfer1::PluginFieldCollection *fc) override;
 
-    nvinfer1::IPluginV2 *deserializePlugin(const char *name, const void *serialData, size_t serialLength) override;
+  nvinfer1::IPluginV2 *deserializePlugin(const char *name,
+                                         const void *serialData,
+                                         size_t serialLength) override;
 
-    void setPluginNamespace(const char *pluginNamespace) override;
+  void setPluginNamespace(const char *pluginNamespace) override;
 
-    const char *getPluginNamespace() const override;
+  const char *getPluginNamespace() const override;
 
-private:
-    static nvinfer1::PluginFieldCollection mFC;
-    static std::vector<nvinfer1::PluginField> mPluginAttributes;
-    std::string mNamespace;
+ private:
+  static nvinfer1::PluginFieldCollection mFC;
+  static std::vector<nvinfer1::PluginField> mPluginAttributes;
+  std::string mNamespace;
 };
 
 REGISTER_TENSORRT_PLUGIN(TorchCumPluginDynamicCreator);
-} // namespace plugin
-} // namespace amirstan
+}  // namespace plugin
+}  // namespace amirstan

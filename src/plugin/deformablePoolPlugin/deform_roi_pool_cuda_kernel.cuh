@@ -1,22 +1,23 @@
-#include <stdio.h>
-#include <math.h>
-#include <float.h>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <float.h>
+#include <math.h>
+#include <stdio.h>
 
 #include "amir_cuda_util/cuda_util.h"
 
-
-
 template <typename T>
-__device__ T bilinear_interpolate(const T* input, const int height,
+__device__ T bilinear_interpolate(const T *input, const int height,
                                   const int width, T y, T x,
                                   const int index /* index for debug only*/) {
   // deal with cases that inverse elements are out of feature map boundary
-  if (y < -1.0 || y > height || x < -1.0 || x > width) return 0;
+  if (y < -1.0 || y > height || x < -1.0 || x > width)
+    return 0;
 
-  if (y <= 0) y = 0;
-  if (x <= 0) x = 0;
+  if (y <= 0)
+    y = 0;
+  if (x <= 0)
+    x = 0;
 
   int y_low = (int)y;
   int x_low = (int)x;
@@ -54,18 +55,18 @@ __device__ T bilinear_interpolate(const T* input, const int height,
 
 template <typename T>
 __global__ void deform_roi_pool_forward_cuda_kernel(
-    const int nthreads, const T* input, const T* rois, const T* offset,
-    T* output, const int pooled_height, const int pooled_width,
+    const int nthreads, const T *input, const T *rois, const T *offset,
+    T *output, const int pooled_height, const int pooled_width,
     const T spatial_scale, const int sampling_ratio, const T gamma,
     const int channels, const int height, const int width) {
-    CUDA_KERNEL_LOOP(index, nthreads) {
+  CUDA_KERNEL_LOOP(index, nthreads) {
     // (n, c, ph, pw) is an element in the pooled output
     int pw = index % pooled_width;
     int ph = (index / pooled_width) % pooled_height;
     int c = (index / pooled_width / pooled_height) % channels;
     int n = index / pooled_width / pooled_height / channels;
 
-    const T* offset_rois = rois + n * 5;
+    const T *offset_rois = rois + n * 5;
     int roi_batch_ind = offset_rois[0];
 
     // Do not using rounding; this implementation detail is critical
@@ -80,7 +81,7 @@ __global__ void deform_roi_pool_forward_cuda_kernel(
     T bin_size_h = static_cast<T>(roi_height) / static_cast<T>(pooled_height);
     T bin_size_w = static_cast<T>(roi_width) / static_cast<T>(pooled_width);
 
-    const T* offset_input =
+    const T *offset_input =
         input + (roi_batch_ind * channels + c) * height * width;
 
     // We use roi_bin_grid to sample the grid and mimic integral
@@ -94,7 +95,7 @@ __global__ void deform_roi_pool_forward_cuda_kernel(
 
     // Compute roi offset
     if (offset != NULL) {
-      const T* offset_cur_w = offset + n * pooled_width * pooled_height * 2 +
+      const T *offset_cur_w = offset + n * pooled_width * pooled_height * 2 +
                               ph * pooled_width + pw;
       T offset_roi_w = gamma * roi_width * offset_cur_w[0];
       T offset_roi_h =

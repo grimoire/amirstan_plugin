@@ -1,20 +1,20 @@
 #include <cstring>
 #include <iostream>
+
 #include "nvdsinfer_custom_impl.h"
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 /* This is a sample bounding box parsing function for the mmdetection
- * detector models converted to TensorRT with https://github.com/grimoire/mmdetection-to-tensorrt. */
+ * detector models converted to TensorRT with
+ * https://github.com/grimoire/mmdetection-to-tensorrt. */
 
 /* C-linkage to prevent name-mangling */
-extern "C"
-bool NvDsInferParseMmdet (std::vector<NvDsInferLayerInfo> const &outputLayersInfo,
-        NvDsInferNetworkInfo  const &networkInfo,
-        NvDsInferParseDetectionParams const &detectionParams,
-        std::vector<NvDsInferParseObjectInfo> &objectList)
-{
+extern "C" bool NvDsInferParseMmdet(
+    std::vector<NvDsInferLayerInfo> const &outputLayersInfo,
+    NvDsInferNetworkInfo const &networkInfo,
+    NvDsInferParseDetectionParams const &detectionParams,
+    std::vector<NvDsInferParseObjectInfo> &objectList) {
   static int numDetectionLayerIndex = -1;
   static int boxesLayerIndex = -1;
   static int scoresLayerIndex = -1;
@@ -31,7 +31,8 @@ bool NvDsInferParseMmdet (std::vector<NvDsInferLayerInfo> const &outputLayersInf
       }
     }
     if (numDetectionLayerIndex == -1) {
-      std::cerr << "Could not find num_detection layer buffer while parsing" << std::endl;
+      std::cerr << "Could not find num_detection layer buffer while parsing"
+                << std::endl;
       return false;
     }
   }
@@ -45,7 +46,8 @@ bool NvDsInferParseMmdet (std::vector<NvDsInferLayerInfo> const &outputLayersInf
       }
     }
     if (boxesLayerIndex == -1) {
-      std::cerr << "Could not find boxes layer buffer while parsing" << std::endl;
+      std::cerr << "Could not find boxes layer buffer while parsing"
+                << std::endl;
       return false;
     }
   }
@@ -60,7 +62,8 @@ bool NvDsInferParseMmdet (std::vector<NvDsInferLayerInfo> const &outputLayersInf
       }
     }
     if (scoresLayerIndex == -1) {
-      std::cerr << "Could not find scores layer buffer while parsing" << std::endl;
+      std::cerr << "Could not find scores layer buffer while parsing"
+                << std::endl;
       return false;
     }
   }
@@ -74,28 +77,28 @@ bool NvDsInferParseMmdet (std::vector<NvDsInferLayerInfo> const &outputLayersInf
       }
     }
     if (classesLayerIndex == -1) {
-      std::cerr << "Could not find classes layer buffer while parsing" << std::endl;
+      std::cerr << "Could not find classes layer buffer while parsing"
+                << std::endl;
       return false;
     }
   }
 
-  float *bboxes = (float *) outputLayersInfo[boxesLayerIndex].buffer;
-  float *classes = (float *) outputLayersInfo[classesLayerIndex].buffer;
-  float *scores = (float *) outputLayersInfo[scoresLayerIndex].buffer;
-  numDetsToParse = *(int*)(outputLayersInfo[numDetectionLayerIndex].buffer);
+  float *bboxes = (float *)outputLayersInfo[boxesLayerIndex].buffer;
+  float *classes = (float *)outputLayersInfo[classesLayerIndex].buffer;
+  float *scores = (float *)outputLayersInfo[scoresLayerIndex].buffer;
+  numDetsToParse = *(int *)(outputLayersInfo[numDetectionLayerIndex].buffer);
 
-  for (int indx = 0; indx < numDetsToParse; indx++)
-  {
+  for (int indx = 0; indx < numDetsToParse; indx++) {
     float outputX1 = bboxes[indx * 4];
     float outputY1 = bboxes[indx * 4 + 1];
     float outputX2 = bboxes[indx * 4 + 2];
     float outputY2 = bboxes[indx * 4 + 3];
     float this_class = classes[indx];
     float this_score = scores[indx];
-    float threshold = this_class>=0? detectionParams.perClassThreshold[this_class] : 1.;
+    float threshold =
+        this_class >= 0 ? detectionParams.perClassThreshold[this_class] : 1.;
 
-    if (this_score >= threshold)
-    {
+    if (this_score >= threshold) {
       NvDsInferParseObjectInfo object;
 
       object.classId = this_class;
