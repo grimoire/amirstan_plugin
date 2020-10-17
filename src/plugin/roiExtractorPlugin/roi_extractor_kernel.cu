@@ -136,8 +136,8 @@ __global__ void roi_extractor_kernel(
     scalar_t roi_offset_x1 = offset_bottom_rois[3];
     scalar_t roi_offset_y1 = offset_bottom_rois[4];
 
-    const scalar_t scale = sqrtf((roi_offset_y1 - roi_offset_y0 + 1.) *
-                                 (roi_offset_x1 - roi_offset_x0 + 1.));
+    const scalar_t scale = sqrtf((roi_offset_y1 - roi_offset_y0) *
+                                 (roi_offset_x1 - roi_offset_x0));
 
     const int target_lvls =
         fminf(feat_data.num_featmap - 1,

@@ -231,8 +231,8 @@ pluginStatus_t allClassNMS_gpu(
 #define P(tsize) allClassNMS_kernel<T_SCORE, T_BBOX, (tsize)>
 
   void (*kernel[10])(const int, const int, const int, const int, const float,
-                    const bool, const bool, float *, T_SCORE *, int *,
-                    T_SCORE *, int *, bool) = {
+                     const bool, const bool, float *, T_SCORE *, int *,
+                     T_SCORE *, int *, bool) = {
       P(1), P(2), P(3), P(4), P(5), P(6), P(7), P(8), P(9), P(10),
   };
 
