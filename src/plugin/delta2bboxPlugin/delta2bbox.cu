@@ -120,10 +120,10 @@ __global__ void delta2bbox_kernel(T *out_cls, T *out_bbox, const T *in_cls,
     const T y2 = gy + gh * 0.5;
 
     if (clip_range != nullptr) {
-      out_bbox[out_bbox_id] = max(T(0.), min(x1, T(clip_range[1]-1)));
-      out_bbox[out_bbox_id + 1] = max(T(0.), min(y1, T(clip_range[0]-1)));
-      out_bbox[out_bbox_id + 2] = max(T(0.), min(x2, T(clip_range[1]-1)));
-      out_bbox[out_bbox_id + 3] = max(T(0.), min(y2, T(clip_range[0]-1)));
+      out_bbox[out_bbox_id] = max(T(0.), min(x1, T(clip_range[1] - 1)));
+      out_bbox[out_bbox_id + 1] = max(T(0.), min(y1, T(clip_range[0] - 1)));
+      out_bbox[out_bbox_id + 2] = max(T(0.), min(x2, T(clip_range[1] - 1)));
+      out_bbox[out_bbox_id + 3] = max(T(0.), min(y2, T(clip_range[0] - 1)));
     } else {
       out_bbox[out_bbox_id] = x1;
       out_bbox[out_bbox_id + 1] = y1;
