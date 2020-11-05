@@ -61,8 +61,8 @@ bool TorchGatherPluginDynamic::supportsFormatCombination(
     case 0:
       return (in[0].type == nvinfer1::DataType::kFLOAT &&
               in[0].format == nvinfer1::TensorFormat::kLINEAR) ||
-            //  (in[0].type == nvinfer1::DataType::kHALF &&
-            //   in[0].format == nvinfer1::TensorFormat::kLINEAR) ||
+             //  (in[0].type == nvinfer1::DataType::kHALF &&
+             //   in[0].format == nvinfer1::TensorFormat::kLINEAR) ||
              (in[0].type == nvinfer1::DataType::kINT32 &&
               in[0].format == nvinfer1::TensorFormat::kLINEAR);
     case 1:
