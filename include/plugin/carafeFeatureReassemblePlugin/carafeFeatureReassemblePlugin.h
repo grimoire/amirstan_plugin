@@ -109,6 +109,5 @@ class CarafeFeatureReassemblePluginDynamicCreator
   std::string mNamespace;
 };
 
-REGISTER_TENSORRT_PLUGIN(CarafeFeatureReassemblePluginDynamicCreator);
 }  // namespace plugin
 }  // namespace amirstan

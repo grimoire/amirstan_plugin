@@ -120,6 +120,5 @@ class LayerNormPluginDynamicCreator : public nvinfer1::IPluginCreator {
   std::string mNamespace;
 };
 
-REGISTER_TENSORRT_PLUGIN(LayerNormPluginDynamicCreator);
 }  // namespace plugin
 }  // namespace amirstan

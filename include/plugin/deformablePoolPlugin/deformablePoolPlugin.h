@@ -109,6 +109,5 @@ class DeformablePoolPluginDynamicCreator : public nvinfer1::IPluginCreator {
   std::string mNamespace;
 };
 
-REGISTER_TENSORRT_PLUGIN(DeformablePoolPluginDynamicCreator);
 }  // namespace plugin
 }  // namespace amirstan

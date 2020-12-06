@@ -147,6 +147,5 @@ class ModulatedDeformableConvPluginDynamicCreator
   std::string mNamespace;
 };
 
-REGISTER_TENSORRT_PLUGIN(ModulatedDeformableConvPluginDynamicCreator);
 }  // namespace plugin
 }  // namespace amirstan

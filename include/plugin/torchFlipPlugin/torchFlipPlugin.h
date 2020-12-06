@@ -104,6 +104,5 @@ class TorchFlipPluginDynamicCreator : public nvinfer1::IPluginCreator {
   std::string mNamespace;
 };
 
-REGISTER_TENSORRT_PLUGIN(TorchFlipPluginDynamicCreator);
 }  // namespace plugin
 }  // namespace amirstan

@@ -122,6 +122,5 @@ class GroupNormPluginDynamicCreator : public nvinfer1::IPluginCreator {
   std::string mNamespace;
 };
 
-REGISTER_TENSORRT_PLUGIN(GroupNormPluginDynamicCreator);
 }  // namespace plugin
 }  // namespace amirstan

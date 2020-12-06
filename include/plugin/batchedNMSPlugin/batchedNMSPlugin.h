@@ -131,7 +131,6 @@ class BatchedNMSPluginCreator : public IPluginCreator {
   bool mClipBoxes;
   std::string mNamespace;
 };
-REGISTER_TENSORRT_PLUGIN(BatchedNMSPluginCreator);
 }  // namespace plugin
 }  // namespace nvinfer1
 

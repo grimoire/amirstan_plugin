@@ -111,6 +111,5 @@ class Delta2BBoxPluginDynamicCreator : public nvinfer1::IPluginCreator {
   std::string mNamespace;
 };
 
-REGISTER_TENSORRT_PLUGIN(Delta2BBoxPluginDynamicCreator);
 }  // namespace plugin
 }  // namespace amirstan

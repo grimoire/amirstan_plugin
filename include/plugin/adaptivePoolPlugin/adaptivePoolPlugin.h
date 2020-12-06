@@ -106,6 +106,5 @@ class AdaptivePoolPluginDynamicCreator : public nvinfer1::IPluginCreator {
   std::string mNamespace;
 };
 
-REGISTER_TENSORRT_PLUGIN(AdaptivePoolPluginDynamicCreator);
 }  // namespace plugin
 }  // namespace amirstan

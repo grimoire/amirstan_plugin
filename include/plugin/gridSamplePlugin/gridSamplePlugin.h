@@ -107,6 +107,5 @@ class GridSamplePluginDynamicCreator : public nvinfer1::IPluginCreator {
   std::string mNamespace;
 };
 
-REGISTER_TENSORRT_PLUGIN(GridSamplePluginDynamicCreator);
 }  // namespace plugin
 }  // namespace amirstan

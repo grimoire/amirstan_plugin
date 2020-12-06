@@ -144,6 +144,5 @@ class DeformableConvPluginDynamicCreator : public nvinfer1::IPluginCreator {
   std::string mNamespace;
 };
 
-REGISTER_TENSORRT_PLUGIN(DeformableConvPluginDynamicCreator);
 }  // namespace plugin
 }  // namespace amirstan

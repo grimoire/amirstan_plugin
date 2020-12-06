@@ -106,6 +106,5 @@ class ExViewPluginDynamicCreator : public nvinfer1::IPluginCreator {
   std::string mNamespace;
 };
 
-REGISTER_TENSORRT_PLUGIN(ExViewPluginDynamicCreator);
 }  // namespace plugin
 }  // namespace amirstan

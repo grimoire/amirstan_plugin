@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "batchedNMSPlugin.h"
+#include "plugin/batchedNMSPlugin/batchedNMSPlugin.h"
 
 #include <algorithm>
 #include <cstring>

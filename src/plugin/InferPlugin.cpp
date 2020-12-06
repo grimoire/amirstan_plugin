@@ -22,6 +22,37 @@
 #include "plugin/torchGatherPlugin/torchGatherPlugin.h"
 #include "plugin/torchNMSPlugin/torchNMSPlugin.h"
 
+namespace nvinfer1 {
+namespace plugin {
+REGISTER_TENSORRT_PLUGIN(BatchedNMSPluginCreator);
+}  // namespace plugin
+}  // namespace nvinfer1
+
+namespace amirstan {
+namespace plugin {
+REGISTER_TENSORRT_PLUGIN(AdaptivePoolPluginDynamicCreator);
+REGISTER_TENSORRT_PLUGIN(CarafeFeatureReassemblePluginDynamicCreator);
+REGISTER_TENSORRT_PLUGIN(DeformableConvPluginDynamicCreator);
+REGISTER_TENSORRT_PLUGIN(ModulatedDeformableConvPluginDynamicCreator);
+REGISTER_TENSORRT_PLUGIN(DeformablePoolPluginDynamicCreator);
+REGISTER_TENSORRT_PLUGIN(Delta2BBoxPluginDynamicCreator);
+REGISTER_TENSORRT_PLUGIN(ExViewPluginDynamicCreator);
+REGISTER_TENSORRT_PLUGIN(GridAnchorDynamicPluginDynamicCreator);
+REGISTER_TENSORRT_PLUGIN(GridSamplePluginDynamicCreator);
+REGISTER_TENSORRT_PLUGIN(GroupNormPluginDynamicCreator);
+REGISTER_TENSORRT_PLUGIN(LayerNormPluginDynamicCreator);
+REGISTER_TENSORRT_PLUGIN(MeshGridPluginDynamicCreator);
+REGISTER_TENSORRT_PLUGIN(RepeatDimsPluginDynamicCreator);
+REGISTER_TENSORRT_PLUGIN(RoiExtractorPluginDynamicCreator);
+REGISTER_TENSORRT_PLUGIN(RoiPoolPluginDynamicCreator);
+REGISTER_TENSORRT_PLUGIN(TorchCumMaxMinPluginDynamicCreator);
+REGISTER_TENSORRT_PLUGIN(TorchCumPluginDynamicCreator);
+REGISTER_TENSORRT_PLUGIN(TorchFlipPluginDynamicCreator);
+REGISTER_TENSORRT_PLUGIN(TorchGatherPluginDynamicCreator);
+REGISTER_TENSORRT_PLUGIN(TorchNMSPluginDynamicCreator);
+}  // namespace plugin
+}  // namespace amirstan
+
 extern "C" {
 
 bool initLibAmirstanInferPlugins() { return true; }
