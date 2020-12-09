@@ -22,14 +22,9 @@
 #include "plugin/torchGatherPlugin/torchGatherPlugin.h"
 #include "plugin/torchNMSPlugin/torchNMSPlugin.h"
 
-namespace nvinfer1 {
-namespace plugin {
-REGISTER_TENSORRT_PLUGIN(BatchedNMSPluginCreator);
-}  // namespace plugin
-}  // namespace nvinfer1
-
 namespace amirstan {
 namespace plugin {
+REGISTER_TENSORRT_PLUGIN(BatchedNMSPluginCustomCreator);
 REGISTER_TENSORRT_PLUGIN(AdaptivePoolPluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(CarafeFeatureReassemblePluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(DeformableConvPluginDynamicCreator);

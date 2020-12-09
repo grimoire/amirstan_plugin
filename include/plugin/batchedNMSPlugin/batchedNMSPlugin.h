@@ -13,24 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef TRT_BATCHED_NMS_PLUGIN_H
-#define TRT_BATCHED_NMS_PLUGIN_H
+#ifndef TRT_BATCHED_NMS_PLUGIN_CUSTOM_H
+#define TRT_BATCHED_NMS_PLUGIN_CUSTOM_H
 #include <string>
 #include <vector>
 
 #include "NvInferPlugin.h"
 
-using namespace nvinfer1::plugin;
-namespace nvinfer1 {
+namespace amirstan {
 namespace plugin {
 
-class BatchedNMSPlugin : public IPluginV2DynamicExt {
+class BatchedNMSPluginCustom : public nvinfer1::IPluginV2DynamicExt {
  public:
-  BatchedNMSPlugin(NMSParameters param);
+  BatchedNMSPluginCustom(nvinfer1::plugin::NMSParameters param);
 
-  BatchedNMSPlugin(const void* data, size_t length);
+  BatchedNMSPluginCustom(const void* data, size_t length);
 
-  ~BatchedNMSPlugin() override = default;
+  ~BatchedNMSPluginCustom() override = default;
 
   int getNbOutputs() const override;
 
@@ -71,7 +70,7 @@ class BatchedNMSPlugin : public IPluginV2DynamicExt {
 
   void destroy() override;
 
-  IPluginV2DynamicExt* clone() const override;
+  nvinfer1::IPluginV2DynamicExt* clone() const override;
 
   nvinfer1::DataType getOutputDataType(int index,
                                        const nvinfer1::DataType* inputType,
@@ -84,7 +83,7 @@ class BatchedNMSPlugin : public IPluginV2DynamicExt {
   void setClipParam(bool clip);
 
  private:
-  NMSParameters param{};
+  nvinfer1::plugin::NMSParameters param{};
   int boxesSize{};
   int scoresSize{};
   int numPriors{};
@@ -102,36 +101,37 @@ class BatchedNMSPlugin : public IPluginV2DynamicExt {
   using nvinfer1::IPluginV2DynamicExt::supportsFormat;
 };
 
-class BatchedNMSPluginCreator : public IPluginCreator {
+class BatchedNMSPluginCustomCreator : public nvinfer1::IPluginCreator {
  public:
-  BatchedNMSPluginCreator();
+  BatchedNMSPluginCustomCreator();
 
-  ~BatchedNMSPluginCreator() override = default;
+  ~BatchedNMSPluginCustomCreator() override = default;
 
   const char* getPluginName() const override;
 
   const char* getPluginVersion() const override;
 
-  const PluginFieldCollection* getFieldNames() override;
+  const nvinfer1::PluginFieldCollection* getFieldNames() override;
 
-  IPluginV2Ext* createPlugin(const char* name,
-                             const PluginFieldCollection* fc) override;
+  nvinfer1::IPluginV2Ext* createPlugin(
+      const char* name, const nvinfer1::PluginFieldCollection* fc) override;
 
-  IPluginV2Ext* deserializePlugin(const char* name, const void* serialData,
-                                  size_t serialLength) override;
+  nvinfer1::IPluginV2Ext* deserializePlugin(const char* name,
+                                            const void* serialData,
+                                            size_t serialLength) override;
 
   void setPluginNamespace(const char* libNamespace) override;
 
   const char* getPluginNamespace() const override;
 
  private:
-  static PluginFieldCollection mFC;
-  NMSParameters params;
-  static std::vector<PluginField> mPluginAttributes;
+  static nvinfer1::PluginFieldCollection mFC;
+  nvinfer1::plugin::NMSParameters params;
+  static std::vector<nvinfer1::PluginField> mPluginAttributes;
   bool mClipBoxes;
   std::string mNamespace;
 };
 }  // namespace plugin
-}  // namespace nvinfer1
+}  // namespace amirstan
 
-#endif  // TRT_BATCHED_NMS_PLUGIN_H
+#endif  // TRT_BATCHED_NMS_PLUGIN_CUSTOM_H
