@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 2.8.11)
-
 set(TARGET_NAME exViewPlugin)
 set(SHARED_TARGET ${TARGET_NAME})
 set(STATIC_TARGET ${TARGET_NAME}_static)

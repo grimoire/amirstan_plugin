@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 2.8.11)
-
 set(TARGET_NAME carafeFeatureReassemblePlugin)
 set(SHARED_TARGET ${TARGET_NAME})
 set(STATIC_TARGET ${TARGET_NAME}_static)
@@ -20,3 +18,7 @@ target_link_libraries(${STATIC_TARGET} ${CUDA_LIBRARY})
 target_link_libraries(${STATIC_TARGET} ${TENSORRT_LIBRARY})
 target_link_libraries(${STATIC_TARGET} amir_cuda_util)
 # target_link_libraries(dcn_plugin ${CUDA_npp_LIBRARY})
+
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.18)
+set_property(TARGET ${STATIC_TARGET} PROPERTY CUDA_ARCHITECTURES ${GPU_ARCHS})
+endif()

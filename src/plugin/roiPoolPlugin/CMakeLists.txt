@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 2.8.11)
-
 set(TARGET_NAME roiPoolPlugin)
 set(SHARED_TARGET ${TARGET_NAME})
 set(STATIC_TARGET ${TARGET_NAME}_static)
@@ -19,3 +17,7 @@ cuda_add_library(${STATIC_TARGET} STATIC ${GROUP_NORM_PLUGIN_HEADS} ${GROUP_NORM
 target_link_libraries(${STATIC_TARGET} ${CUDA_LIBRARY})
 target_link_libraries(${STATIC_TARGET} ${TENSORRT_LIBRARY})
 target_link_libraries(${STATIC_TARGET} amir_cuda_util)
+
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.18)
+    set_property(TARGET ${STATIC_TARGET} PROPERTY CUDA_ARCHITECTURES ${GPU_ARCHS})
+endif()

@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8.11)
+cmake_minimum_required (VERSION 3.13)
 project (trt_plugin)
 
 
@@ -78,6 +78,47 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 # set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 # set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fopenmp")
+
+############################################################################################
+# CUDA targets
+
+if (DEFINED GPU_ARCHS)
+  message(STATUS "GPU_ARCHS defined as ${GPU_ARCHS}. Generating CUDA code for SM ${GPU_ARCHS}")
+  separate_arguments(GPU_ARCHS)
+else()
+  list(APPEND GPU_ARCHS
+      35
+      53
+      61
+      70
+      75
+    )
+
+  string(REGEX MATCH "aarch64" IS_ARM "${TRT_PLATFORM_ID}")
+  if (IS_ARM)
+    # Xavier (SM72) only supported for aarch64.
+    list(APPEND GPU_ARCHS 72)
+  endif()
+
+  if (CUDA_VERSION VERSION_GREATER_EQUAL 11.0)
+    # Ampere GPU (SM80) support is only available in CUDA versions > 11.0
+    list(APPEND GPU_ARCHS 80)
+  else()
+    message(WARNING "Detected CUDA version is < 11.0. SM80 not supported.")
+  endif()
+
+  message(STATUS "GPU_ARCHS is not defined. Generating CUDA code for default SMs: ${GPU_ARCHS}")
+endif()
+# Generate SASS for each architecture
+foreach(arch ${GPU_ARCHS})
+    set(GENCODES "${GENCODES} -gencode arch=compute_${arch},code=sm_${arch}")
+endforeach()
+# Generate PTX for the last architecture in the list.
+list(GET GPU_ARCHS -1 LATEST_SM)
+set(GENCODES "${GENCODES} -gencode arch=compute_${LATEST_SM},code=compute_${LATEST_SM}")
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Wno-deprecated-declarations")
+
+############################################################################################
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
