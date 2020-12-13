@@ -41,9 +41,11 @@ static const char* NMS_PLUGIN_NAME{"BatchedNMS_TRT_CUSTOM"};
 PluginFieldCollection BatchedNMSPluginCustomCreator::mFC{};
 std::vector<PluginField> BatchedNMSPluginCustomCreator::mPluginAttributes;
 
-BatchedNMSPluginCustom::BatchedNMSPluginCustom(NMSParameters params) : param(params) {}
+BatchedNMSPluginCustom::BatchedNMSPluginCustom(NMSParameters params)
+    : param(params) {}
 
-BatchedNMSPluginCustom::BatchedNMSPluginCustom(const void* data, size_t length) {
+BatchedNMSPluginCustom::BatchedNMSPluginCustom(const void* data,
+                                               size_t length) {
   const char *d = reinterpret_cast<const char*>(data), *a = d;
   param = read<NMSParameters>(d);
   boxesSize = read<int>(d);
@@ -110,10 +112,10 @@ size_t BatchedNMSPluginCustom::getWorkspaceSize(
       num_priors, param.topK, DataType::kFLOAT, DataType::kFLOAT);
 }
 
-int BatchedNMSPluginCustom::enqueue(const nvinfer1::PluginTensorDesc* inputDesc,
-                              const nvinfer1::PluginTensorDesc* outputDesc,
-                              const void* const* inputs, void* const* outputs,
-                              void* workSpace, cudaStream_t stream) {
+int BatchedNMSPluginCustom::enqueue(
+    const nvinfer1::PluginTensorDesc* inputDesc,
+    const nvinfer1::PluginTensorDesc* outputDesc, const void* const* inputs,
+    void* const* outputs, void* workSpace, cudaStream_t stream) {
   const void* const locData = inputs[0];
   const void* const confData = inputs[1];
 
@@ -174,7 +176,9 @@ bool BatchedNMSPluginCustom::supportsFormatCombination(
          inOut[pos].format == nvinfer1::TensorFormat::kLINEAR;
 }
 
-const char* BatchedNMSPluginCustom::getPluginType() const { return NMS_PLUGIN_NAME; }
+const char* BatchedNMSPluginCustom::getPluginType() const {
+  return NMS_PLUGIN_NAME;
+}
 
 const char* BatchedNMSPluginCustom::getPluginVersion() const {
   return NMS_PLUGIN_VERSION;
@@ -210,13 +214,14 @@ nvinfer1::DataType BatchedNMSPluginCustom::getOutputDataType(
 
 void BatchedNMSPluginCustom::setClipParam(bool clip) { mClipBoxes = clip; }
 
-// bool BatchedNMSPluginCustom::isOutputBroadcastAcrossBatch(int outputIndex, const
-// bool* inputIsBroadcasted, int nbInputs) const
+// bool BatchedNMSPluginCustom::isOutputBroadcastAcrossBatch(int outputIndex,
+// const bool* inputIsBroadcasted, int nbInputs) const
 // {
 //     return false;
 // }
 
-// bool BatchedNMSPluginCustom::canBroadcastInputAcrossBatch(int inputIndex) const
+// bool BatchedNMSPluginCustom::canBroadcastInputAcrossBatch(int inputIndex)
+// const
 // {
 //     return false;
 // }
@@ -297,17 +302,18 @@ IPluginV2Ext* BatchedNMSPluginCustomCreator::createPlugin(
   return plugin;
 }
 
-IPluginV2Ext* BatchedNMSPluginCustomCreator::deserializePlugin(const char* name,
-                                                         const void* serialData,
-                                                         size_t serialLength) {
+IPluginV2Ext* BatchedNMSPluginCustomCreator::deserializePlugin(
+    const char* name, const void* serialData, size_t serialLength) {
   // This object will be deleted when the network is destroyed, which will
   // call NMS::destroy()
-  BatchedNMSPluginCustom* plugin = new BatchedNMSPluginCustom(serialData, serialLength);
+  BatchedNMSPluginCustom* plugin =
+      new BatchedNMSPluginCustom(serialData, serialLength);
   plugin->setPluginNamespace(mNamespace.c_str());
   return plugin;
 }
 
-void BatchedNMSPluginCustomCreator::setPluginNamespace(const char* libNamespace) {
+void BatchedNMSPluginCustomCreator::setPluginNamespace(
+    const char* libNamespace) {
   mNamespace = libNamespace;
 }
 
