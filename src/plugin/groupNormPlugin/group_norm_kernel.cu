@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "amir_cuda_util/common_util.h"
 #include "amir_cuda_util/cuda_util.h"
 #include "group_norm.h"
 
@@ -30,15 +31,20 @@ void compute_group_norm(T *output, const T *input, int batch_size,
                         int num_groups, int num_channels, int WH, T eps,
                         const float *weight, const float *bias,
                         cudaStream_t stream, void *workspace) {
+  size_t word_size = sizeof(T);
   T *mean = (T *)workspace;
-  T *var = mean + batch_size * num_groups;
+  workspace = workspace + amirstan::common::getAlignedSize(
+                              batch_size * num_groups * word_size);
+  T *var = (T *)workspace;
+  workspace = workspace + amirstan::common::getAlignedSize(
+                              batch_size * num_groups * word_size);
   int mean_var_shape[2] = {batch_size * num_groups,
                            num_channels * WH / num_groups};
   bool mean_var_reduce_dims[2] = {false, true};
 
   amirstan::cuda::tensorMeanVar<T>(mean, var, input, &mean_var_shape[0],
                                    &mean_var_reduce_dims[0], 2, stream,
-                                   (void *)(var + batch_size * num_groups));
+                                   workspace);
 
   size_t input_size = batch_size * num_channels * WH;
 

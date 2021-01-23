@@ -9,7 +9,8 @@
 #include <cmath>
 #include <iostream>
 
-// #include "amir_cuda_util/cublas_util.h"
+#include "amir_cuda_util/common_util.h"
+
 
 void deformable_im2col(float *data_input, float *data_offset,
                        const int channels, const int height, const int width,
@@ -70,16 +71,18 @@ int deform_conv_forward_cuda(float *input, float *weight, float *bias,
   long outputHeight =
       (inputHeight + 2 * padH - (dilationH * (kH - 1) + 1)) / dH + 1;
 
-  long long columns_size =
-      nInputPlane * kW * kH * im2col_step * outputHeight * outputWidth;
+  long long columns_size = amirstan::common::getAlignedSize(
+      nInputPlane * kW * kH * im2col_step * outputHeight * outputWidth *
+      sizeof(float));
   float *columns = (float *)workspace;
+  workspace = workspace + columns_size;
 
   float *output_buffer;
   long long output_buffer_size = 0;
   if (im2col_step == 1) {
     output_buffer = output;
   } else {
-    output_buffer = columns + columns_size;
+    output_buffer = (float *)workspace;
     output_buffer_size = batchSize * nOutputPlane * outputWidth * outputHeight;
   }
 

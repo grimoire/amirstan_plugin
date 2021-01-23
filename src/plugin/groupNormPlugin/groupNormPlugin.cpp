@@ -9,6 +9,7 @@
 #include "common.h"
 #include "group_norm.h"
 #include "serialize.hpp"
+#include "amir_cuda_util/common_util.h"
 
 namespace amirstan {
 namespace plugin {
@@ -135,9 +136,9 @@ size_t GroupNormPluginDynamic::getWorkspaceSize(
   int channel_size = inputs[0].dims.d[1];
   int width = inputs[0].dims.d[2];
   int height = inputs[0].dims.d[3];
-  size_t mean_size = batch_size * mNumGroups * wordSize;
+  size_t mean_size = amirstan::common::getAlignedSize(batch_size * mNumGroups * wordSize);
   size_t var_size = mean_size;
-  size_t mean_var_size = batch_size * channel_size * width * height * wordSize;
+  size_t mean_var_size = amirstan::common::getAlignedSize(batch_size * channel_size * width * height * wordSize);
 
   size_t final_size = mean_size + var_size + 100;
   return final_size;

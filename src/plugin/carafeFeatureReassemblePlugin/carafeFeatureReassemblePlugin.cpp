@@ -6,6 +6,7 @@
 #include <chrono>
 
 #include "amirCommon.h"
+#include "amir_cuda_util/common_util.h"
 #include "carafe_cuda.h"
 #include "common.h"
 #include "serialize.hpp"
@@ -115,12 +116,12 @@ size_t CarafeFeatureReassemblePluginDynamic::getWorkspaceSize(
   int maskChannel = inputs[1].dims.d[1];
 
   int sizeof_dtype = samplesCommon::getElementSize(nvinfer1::DataType::kFLOAT);
-  size_t rfeature_size =
-      batch_size * numChannel * inputHeight * inputWidth * sizeof_dtype;
-  size_t rmask_size =
-      batch_size * maskChannel * outputHeight * outputWidth * sizeof_dtype;
-  size_t routput_size =
-      batch_size * numChannel * outputHeight * outputWidth * sizeof_dtype;
+  size_t rfeature_size = amirstan::common::getAlignedSize(
+      batch_size * numChannel * inputHeight * inputWidth * sizeof_dtype);
+  size_t rmask_size = amirstan::common::getAlignedSize(
+      batch_size * maskChannel * outputHeight * outputWidth * sizeof_dtype);
+  size_t routput_size = amirstan::common::getAlignedSize(
+      batch_size * numChannel * outputHeight * outputWidth * sizeof_dtype);
   return rfeature_size + rmask_size + routput_size;
 }
 
@@ -139,12 +140,12 @@ int CarafeFeatureReassemblePluginDynamic::enqueue(
   int maskChannel = inputDesc[1].dims.d[1];
 
   int sizeof_dtype = samplesCommon::getElementSize(nvinfer1::DataType::kFLOAT);
-  size_t rfeature_size =
-      batch_size * numChannel * inputHeight * inputWidth * sizeof_dtype;
-  size_t rmask_size =
-      batch_size * maskChannel * outputHeight * outputWidth * sizeof_dtype;
-  size_t routput_size =
-      batch_size * numChannel * outputHeight * outputWidth * sizeof_dtype;
+  size_t rfeature_size = amirstan::common::getAlignedSize(
+      batch_size * numChannel * inputHeight * inputWidth * sizeof_dtype);
+  size_t rmask_size = amirstan::common::getAlignedSize(
+      batch_size * maskChannel * outputHeight * outputWidth * sizeof_dtype);
+  size_t routput_size = amirstan::common::getAlignedSize(
+      batch_size * numChannel * outputHeight * outputWidth * sizeof_dtype);
 
   void *rfeatures = workSpace;
   void *rmasks = workSpace + rfeature_size;

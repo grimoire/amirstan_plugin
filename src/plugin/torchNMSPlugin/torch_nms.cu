@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cub/cub.cuh>
 
+#include "amir_cuda_util/common_util.h"
 #include "amir_cuda_util/cuda_util.h"
 #include "torch_nms.h"
 
@@ -202,10 +203,17 @@ template size_t nms_workspace_size<float>(int num_boxes);
 template <typename T>
 void torch_nms(int *output, const T *bboxes, const T *scores, int num_boxes,
                float iou_threshold, void *workspace, cudaStream_t stream) {
+  size_t word_size = sizeof(T);
   int *input_index = (int *)workspace;
-  T *tmp_score = (T *)(input_index + num_boxes);
-  T *final_score = (T *)(tmp_score + num_boxes);
-  void *tmp_sort = (void *)(final_score + num_boxes);
+  workspace = (char *)workspace +
+              amirstan::common::getAlignedSize(num_boxes * sizeof(int));
+  T *tmp_score = (T *)workspace;
+  workspace = (char *)workspace +
+              amirstan::common::getAlignedSize(num_boxes * word_size);
+  T *final_score = (T *)workspace;
+  workspace = (char *)workspace +
+              amirstan::common::getAlignedSize(num_boxes * word_size);
+  void *tmp_sort = (void *)workspace;
 
   // arange
   arange<<<GET_BLOCKS(num_boxes), CUDA_NUM_THREADS, 0, stream>>>(input_index,

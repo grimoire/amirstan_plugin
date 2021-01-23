@@ -6,6 +6,7 @@
 #include <chrono>
 
 #include "amirCommon.h"
+#include "amir_cuda_util/common_util.h"
 #include "common.h"
 #include "deform_conv_cuda.h"
 #include "serialize.hpp"
@@ -223,13 +224,14 @@ size_t DeformableConvPluginDynamic::getWorkspaceSize(
   int kH = mKernelSize.d[1];
   int im2col_step = std::min(int(batch_size), 64);
 
-  size_t col_size = nInputPlane * kW * kH * im2col_step * outputHeight *
-                    outputWidth * sizeof_dtype;
+  size_t col_size = amirstan::common::getAlignedSize(
+      nInputPlane * kW * kH * im2col_step * outputHeight * outputWidth *
+      sizeof_dtype);
 
   size_t out_size = 0;
   if (im2col_step != 1)
-    out_size =
-        batch_size * nOutputPlane * outputHeight * outputWidth * sizeof_dtype;
+    out_size = amirstan::common::getAlignedSize(
+        batch_size * nOutputPlane * outputHeight * outputWidth * sizeof_dtype);
 
   return col_size + out_size + 100 * sizeof(float);
 }

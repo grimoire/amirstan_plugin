@@ -6,9 +6,11 @@
 #include <chrono>
 
 #include "amirCommon.h"
+#include "amir_cuda_util/common_util.h"
 #include "common.h"
 #include "deform_conv_cuda.h"
 #include "serialize.hpp"
+
 
 namespace amirstan {
 namespace plugin {
@@ -230,8 +232,8 @@ size_t ModulatedDeformableConvPluginDynamic::getWorkspaceSize(
   int kH = mKernelSize.d[1];
   int im2col_step = std::min(int(batch_size), 64);
 
-  size_t col_size =
-      nInputPlane * kW * kH * outputHeight * outputWidth * sizeof_dtype;
+  size_t col_size = amirstan::common::getAlignedSize(
+      nInputPlane * kW * kH * outputHeight * outputWidth * sizeof_dtype);
 
   return col_size + 100 * sizeof(float);
 }

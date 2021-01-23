@@ -6,6 +6,7 @@
 #include <chrono>
 
 #include "amirCommon.h"
+#include "amir_cuda_util/common_util.h"
 #include "amir_cuda_util/cuda_util.h"
 #include "common.h"
 #include "serialize.hpp"
@@ -78,17 +79,26 @@ size_t TorchNMSPluginDynamic::getWorkspaceSize(
     const nvinfer1::PluginTensorDesc *outputs, int nbOutputs) const {
   int num_bbox = inputs[1].dims.d[0];
   auto data_type = inputs[1].type;
-  size_t score_workspace = 0;
+  size_t tmp_score_workspace = 0;
+  size_t final_score_workspace = 0;
   size_t nms_workspace = 0;
+  size_t index_workspace =
+      amirstan::common::getAlignedSize(num_bbox * sizeof(int));
   switch (data_type) {
     case nvinfer1::DataType::kFLOAT:
-      score_workspace = num_bbox * sizeof(float) * 2;
+      tmp_score_workspace = num_bbox * sizeof(float);
+      final_score_workspace = num_bbox * sizeof(float);
       nms_workspace = nms_workspace_size<float>(num_bbox) + 1;
       break;
     default:
       break;
   }
-  return score_workspace + num_bbox * sizeof(int) + nms_workspace;
+  tmp_score_workspace = amirstan::common::getAlignedSize(tmp_score_workspace);
+  final_score_workspace =
+      amirstan::common::getAlignedSize(final_score_workspace);
+  nms_workspace = amirstan::common::getAlignedSize(nms_workspace);
+  return tmp_score_workspace + final_score_workspace + index_workspace +
+         nms_workspace;
 }
 
 int TorchNMSPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc,
