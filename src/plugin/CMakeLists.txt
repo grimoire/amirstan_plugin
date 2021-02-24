@@ -29,6 +29,7 @@ set(PLUGIN_LIST deformableConvPlugin
                 torchNMSPlugin
                 roiPoolPlugin
                 torchEmbeddingPlugin
+                torchBmmPlugin
                 )
 
 set(INFER_PLUGIN_SRC InferPlugin.cpp
