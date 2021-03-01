@@ -14,10 +14,10 @@ namespace plugin {
 class DeformableConvPluginDynamic : public nvinfer1::IPluginV2DynamicExt {
  public:
   DeformableConvPluginDynamic(const std::string &name,
-                              const nvinfer1::DataType &type, const int outDim,
-                              const nvinfer1::Dims &kernelSize,
-                              const nvinfer1::Weights &W,
-                              const nvinfer1::Weights &B);
+                              const nvinfer1::Dims &stride,
+                              const nvinfer1::Dims &padding,
+                              const nvinfer1::Dims &dilation,
+                              const int deformableGroup, const int group);
 
   DeformableConvPluginDynamic(const std::string name, const void *data,
                               size_t length);
@@ -25,21 +25,6 @@ class DeformableConvPluginDynamic : public nvinfer1::IPluginV2DynamicExt {
   // It doesn't make sense to make DeformableConvPluginDynamic without
   // arguments, so we delete default constructor.
   DeformableConvPluginDynamic() = delete;
-
-  virtual void setStrideNd(nvinfer1::Dims stride);
-  virtual nvinfer1::Dims getStrideNd() const;
-
-  virtual void setPaddingNd(nvinfer1::Dims padding);
-  virtual nvinfer1::Dims getPaddingNd() const;
-
-  virtual void setDilationNd(nvinfer1::Dims dilation);
-  virtual nvinfer1::Dims getDilationNd() const;
-
-  virtual void setDeformableGroup(int deformableGroup);
-  virtual int getDeformableGroup();
-
-  virtual void setGroup(int group);
-  virtual int getGroup();
 
   // IPluginV2DynamicExt Methods
   nvinfer1::IPluginV2DynamicExt *clone() const override;
@@ -83,25 +68,11 @@ class DeformableConvPluginDynamic : public nvinfer1::IPluginV2DynamicExt {
   const std::string mLayerName;
   std::string mNamespace;
 
-  nvinfer1::DataType mType;
-  size_t mOutDim;  // leading dim
-  nvinfer1::Dims mKernelSize;
-
   nvinfer1::Dims mStride;
   nvinfer1::Dims mPadding;
   nvinfer1::Dims mDilation;
   int mDeformableGroup;
   int mGroup;
-
-  nvinfer1::Weights mW;
-  std::shared_ptr<char> mWhost;
-  size_t mNumParamsW;
-  char *mWdev;
-
-  nvinfer1::Weights mB;
-  std::shared_ptr<char> mBhost;
-  size_t mNumParamsB;
-  char *mBdev;
 
   cublasHandle_t m_cublas_handle;
   cudaStream_t m_cuda_stream;
