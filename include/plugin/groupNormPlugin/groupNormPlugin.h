@@ -13,10 +13,7 @@ namespace plugin {
 
 class GroupNormPluginDynamic : public nvinfer1::IPluginV2DynamicExt {
  public:
-  GroupNormPluginDynamic(const std::string &name, int num_groups,
-                         int num_channels, float eps,
-                         const nvinfer1::Weights &W,
-                         const nvinfer1::Weights &B);
+  GroupNormPluginDynamic(const std::string &name, int num_groups, float eps);
 
   GroupNormPluginDynamic(const std::string name, const void *data,
                          size_t length);
@@ -67,21 +64,9 @@ class GroupNormPluginDynamic : public nvinfer1::IPluginV2DynamicExt {
   const std::string mLayerName;
   std::string mNamespace;
 
-  int mNumChannels;
   int mNumGroups;
   float mEps;
 
-  nvinfer1::Weights mW;
-  std::shared_ptr<char> mWhost;
-  size_t mNumParamsW;
-  char *mWdev;
-
-  nvinfer1::Weights mB;
-  std::shared_ptr<char> mBhost;
-  size_t mNumParamsB;
-  char *mBdev;
-
-  cublasHandle_t m_cublas_handle;
   cudaStream_t m_cuda_stream;
 
  protected:
