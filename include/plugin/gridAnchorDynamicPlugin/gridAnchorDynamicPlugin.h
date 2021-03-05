@@ -13,15 +13,7 @@ namespace plugin {
 
 class GridAnchorDynamicPluginDynamic : public nvinfer1::IPluginV2DynamicExt {
  public:
-  GridAnchorDynamicPluginDynamic(const std::string &name, int baseSize,
-                                 int stride, const std::vector<float> &scales,
-                                 const std::vector<float> &ratios,
-                                 bool scaleMajor = true, int centerX = -1,
-                                 int centerY = -1);
-
-  GridAnchorDynamicPluginDynamic(const std::string &name, int baseSize,
-                                 int stride,
-                                 const std::vector<float> &baseAnchors);
+  GridAnchorDynamicPluginDynamic(const std::string &name, int stride);
 
   GridAnchorDynamicPluginDynamic(const std::string name, const void *data,
                                  size_t length);
@@ -68,25 +60,14 @@ class GridAnchorDynamicPluginDynamic : public nvinfer1::IPluginV2DynamicExt {
   void setPluginNamespace(const char *pluginNamespace) override;
   const char *getPluginNamespace() const override;
 
- private:
-  void generateBaseAnchor();
+  //  private:
+  //   void generateBaseAnchor();
 
  private:
   const std::string mLayerName;
   std::string mNamespace;
 
-  int mBaseSize;
   int mStride;
-  std::vector<float> mScales;
-  std::vector<float> mRatios;
-  bool mScaleMajor;
-  int mCenterX;
-  int mCenterY;
-
-  int mNumBaseAnchor;
-  std::shared_ptr<float> mHostBaseAnchor;
-  float *mDevBaseAnchor;
-  bool mIsInitialed;
 
  protected:
   // To prevent compiler warnings.
