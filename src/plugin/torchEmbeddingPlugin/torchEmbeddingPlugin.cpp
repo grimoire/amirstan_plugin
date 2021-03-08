@@ -20,24 +20,13 @@ static const char *PLUGIN_NAME{"TorchEmbeddingPluginDynamic"};
 
 PluginFieldCollection TorchEmbeddingPluginDynamicCreator::mFC{};
 std::vector<PluginField> TorchEmbeddingPluginDynamicCreator::mPluginAttributes(
-    {PluginField("num_embeddings"), PluginField("embedding_dim"),
-     PluginField("weight")});
+    {PluginField("num_embeddings"), PluginField("embedding_dim")});
 
 TorchEmbeddingPluginDynamic::TorchEmbeddingPluginDynamic(
-    const std::string &name, int numEmbeddings, int embeddingDim,
-    const float *weight)
+    const std::string &name, int numEmbeddings, int embeddingDim)
     : mLayerName(name),
       mNumEmbeddings(numEmbeddings),
-      mEmbeddingDim(embeddingDim) {
-  mDevWeight = nullptr;
-  int weight_size = mNumEmbeddings * mEmbeddingDim;
-
-  mHostWeight =
-      std::shared_ptr<float>((float *)malloc(weight_size * sizeof(float)));
-  memcpy(mHostWeight.get(), weight, weight_size * sizeof(float));
-  mIsInitialed = false;
-  initialize();
-}
+      mEmbeddingDim(embeddingDim) {}
 
 TorchEmbeddingPluginDynamic::TorchEmbeddingPluginDynamic(const std::string name,
                                                          const void *data,
@@ -45,23 +34,11 @@ TorchEmbeddingPluginDynamic::TorchEmbeddingPluginDynamic(const std::string name,
     : mLayerName(name) {
   deserialize_value(&data, &length, &mNumEmbeddings);
   deserialize_value(&data, &length, &mEmbeddingDim);
-
-  const char *d = static_cast<const char *>(data);
-
-  // weight
-  int weight_size = mNumEmbeddings * mEmbeddingDim;
-  float *weight_data =
-      (float *)deserToHost<char>(d, weight_size * sizeof(float));
-  mHostWeight = std::shared_ptr<float>((float *)weight_data);
-  mDevWeight = nullptr;
-
-  mIsInitialed = false;
-  initialize();
 }
 
 nvinfer1::IPluginV2DynamicExt *TorchEmbeddingPluginDynamic::clone() const {
   TorchEmbeddingPluginDynamic *plugin = new TorchEmbeddingPluginDynamic(
-      mLayerName, mNumEmbeddings, mEmbeddingDim, mHostWeight.get());
+      mLayerName, mNumEmbeddings, mEmbeddingDim);
   plugin->setPluginNamespace(getPluginNamespace());
 
   return plugin;
@@ -90,6 +67,9 @@ bool TorchEmbeddingPluginDynamic::supportsFormatCombination(
       return in[0].type == nvinfer1::DataType::kINT32 &&
              in[0].format == nvinfer1::TensorFormat::kLINEAR;
     case 1:
+      return in[1].type == nvinfer1::DataType::kFLOAT &&
+             in[1].format == nvinfer1::TensorFormat::kLINEAR;
+    case 2:
       return out[0].type == nvinfer1::DataType::kFLOAT &&
              out[0].format == nvinfer1::TensorFormat::kLINEAR;
   }
@@ -116,6 +96,7 @@ int TorchEmbeddingPluginDynamic::enqueue(
   }
 
   auto data_type = inputDesc[0].type;
+  const void *mDevWeight = inputs[1];
 
   switch (data_type) {
     case nvinfer1::DataType::kINT32:
@@ -147,37 +128,17 @@ const char *TorchEmbeddingPluginDynamic::getPluginVersion() const {
 
 int TorchEmbeddingPluginDynamic::getNbOutputs() const { return 1; }
 
-int TorchEmbeddingPluginDynamic::initialize() {
-  if (!mIsInitialed) {
-    size_t nbBytes = mNumEmbeddings * mEmbeddingDim * sizeof(float);
-    CHECK(cudaMalloc((void **)&mDevWeight, nbBytes));
-    CHECK(cudaMemcpy((void *)mDevWeight, (void *)mHostWeight.get(), nbBytes,
-                     cudaMemcpyHostToDevice));
-    mIsInitialed = true;
-  }
-  return 0;
-}
+int TorchEmbeddingPluginDynamic::initialize() { return 0; }
 
-void TorchEmbeddingPluginDynamic::terminate() {
-  if (mIsInitialed) {
-    cudaFree(mDevWeight);
-    mDevWeight = nullptr;
-    mIsInitialed = false;
-  }
-}
+void TorchEmbeddingPluginDynamic::terminate() {}
 
 size_t TorchEmbeddingPluginDynamic::getSerializationSize() const {
-  return sizeof(mNumEmbeddings) + sizeof(mEmbeddingDim) +
-         mNumEmbeddings * mEmbeddingDim * sizeof(float);
+  return sizeof(mNumEmbeddings) + sizeof(mEmbeddingDim);
 }
 
 void TorchEmbeddingPluginDynamic::serialize(void *buffer) const {
   serialize_value(&buffer, mNumEmbeddings);
   serialize_value(&buffer, mEmbeddingDim);
-
-  char *d = static_cast<char *>(buffer);
-  int weight_size = mNumEmbeddings * mEmbeddingDim;
-  serFromHost(d, mHostWeight.get(), weight_size);
 }
 
 void TorchEmbeddingPluginDynamic::destroy() {
@@ -217,7 +178,6 @@ IPluginV2 *TorchEmbeddingPluginDynamicCreator::createPlugin(
     const char *name, const PluginFieldCollection *fc) {
   int numEmbeddings = 0;
   int embeddingDim = 0;
-  const float *weight = nullptr;
 
   for (int i = 0; i < fc->nbFields; i++) {
     if (fc->fields[i].data == nullptr) {
@@ -232,16 +192,10 @@ IPluginV2 *TorchEmbeddingPluginDynamicCreator::createPlugin(
     if (field_name.compare("embedding_dim") == 0) {
       embeddingDim = static_cast<const int *>(fc->fields[i].data)[0];
     }
-
-    if (field_name.compare("weight") == 0) {
-      weight = static_cast<const float *>(fc->fields[i].data);
-    }
   }
 
-  assert(weight != nullptr);
-
-  TorchEmbeddingPluginDynamic *plugin = new TorchEmbeddingPluginDynamic(
-      name, numEmbeddings, embeddingDim, weight);
+  TorchEmbeddingPluginDynamic *plugin =
+      new TorchEmbeddingPluginDynamic(name, numEmbeddings, embeddingDim);
   plugin->setPluginNamespace(getPluginNamespace());
   return plugin;
 }

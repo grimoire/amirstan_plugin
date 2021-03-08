@@ -14,7 +14,7 @@ namespace plugin {
 class TorchEmbeddingPluginDynamic : public nvinfer1::IPluginV2DynamicExt {
  public:
   TorchEmbeddingPluginDynamic(const std::string &name, int numEmbeddings,
-                              int embeddingDim, const float *weight);
+                              int embeddingDim);
 
   TorchEmbeddingPluginDynamic(const std::string name, const void *data,
                               size_t length);
@@ -67,10 +67,6 @@ class TorchEmbeddingPluginDynamic : public nvinfer1::IPluginV2DynamicExt {
 
   int mNumEmbeddings;
   int mEmbeddingDim;
-
-  std::shared_ptr<float> mHostWeight;
-  float *mDevWeight;
-  bool mIsInitialed;
 
  protected:
   // To prevent compiler warnings.
