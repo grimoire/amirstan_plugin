@@ -58,7 +58,7 @@ MESSAGE(STATUS "WITH_DEEPSTREAM: ${WITH_DEEPSTREAM}")
 
 if (WITH_DEEPSTREAM)
     if (NOT DEFINED DeepStream_DIR)
-        set(DeepStream_DIR /opt/nvidia/deepstream/deepstream-5.0)
+        set(DeepStream_DIR /opt/nvidia/deepstream/deepstream-5.1)
     endif ()
     if (DEFINED DeepStream_DIR)
         include_directories("${DeepStream_DIR}/sources/includes")
