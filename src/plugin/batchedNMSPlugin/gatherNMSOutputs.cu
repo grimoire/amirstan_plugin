@@ -15,7 +15,6 @@
  */
 #include <vector>
 
-#include "gatherNMSOutputs.h"
 #include "kernel.h"
 #include "plugin.h"
 

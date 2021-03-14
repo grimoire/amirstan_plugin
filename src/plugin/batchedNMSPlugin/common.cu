@@ -23,28 +23,6 @@
 
 #define CUDA_MEM_ALIGN 256
 
-// HASH
-unsigned int hash(const void *array_, size_t size) {
-  // Apply hashing only when debugging RPN codes.
-  if (DEBUG_ENABLE) {
-    const char *array_const;
-    char *array;
-    cudaMallocHost((void **)&array, size);
-    cudaMemcpy(array, array_, size, cudaMemcpyDeviceToHost);
-    array_const = array;
-    unsigned int hash = 45599;
-    for (size_t i = 0; i < size; i++) {
-      unsigned int value = array_const[i];
-      hash = hash * 1487 + value;
-      hash = hash * 317;
-      hash = hash % 105359;
-    }
-    return hash;
-  } else {
-    return 0;
-  }
-}
-
 // ALIGNPTR
 int8_t *alignPtr(int8_t *ptr, uintptr_t to) {
   uintptr_t addr = (uintptr_t)ptr;
@@ -88,35 +66,6 @@ size_t dataTypeSize(const DataType dtype) {
       return 0;
   }
 }
-
-// CUB
-/*
-size_t cubSortFloatIntPairsWorkspaceSize(int num_items, int num_segments)
-{
-    size_t temp_storage_bytes = 0;
-    cub::DeviceSegmentedRadixSort::SortPairsDescending(
-    (int *)NULL, temp_storage_bytes,
-    (const float *)NULL, (float *)NULL,
-    (const int *)NULL, (int *)NULL,
-    num_items,     // # items
-    num_segments,  // # segments
-    (const int *)NULL, (const int *)NULL);
-    return temp_storage_bytes;
-}
-
-size_t cubSortFloatBboxInfoPairsWorkspaceSize(int num_items, int num_segments)
-{
-    size_t temp_storage_bytes = 0;
-    cub::DeviceSegmentedRadixSort::SortPairsDescending(
-    (int *)NULL, temp_storage_bytes,
-    (const float *)NULL, (float *)NULL,
-    (const BboxInfo<float> *)NULL, (BboxInfo<float> *)NULL,
-    num_items,     // # items
-    num_segments,  // # segments
-    (const int *)NULL, (const int *)NULL);
-    return temp_storage_bytes;
-}
-*/
 
 template <unsigned nthds_per_cta>
 __launch_bounds__(nthds_per_cta) __global__

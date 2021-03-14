@@ -16,17 +16,11 @@
 
 #include "plugin/batchedNMSPlugin/batchedNMSPlugin.h"
 
-#include <algorithm>
 #include <cstring>
-#include <iostream>
-#include <sstream>
-#include <vector>
 
 #include "batchedNMSInference.h"
-#include "gatherNMSOutputs.h"
-#include "kernel.h"
 #include "nmsUtils.h"
-#include "plugin.h"
+#include "serialize.hpp"
 
 using namespace nvinfer1;
 using amirstan::plugin::BatchedNMSPluginCustom;
@@ -46,13 +40,11 @@ BatchedNMSPluginCustom::BatchedNMSPluginCustom(NMSParameters params)
 
 BatchedNMSPluginCustom::BatchedNMSPluginCustom(const void* data,
                                                size_t length) {
-  const char *d = reinterpret_cast<const char*>(data), *a = d;
-  param = read<NMSParameters>(d);
-  boxesSize = read<int>(d);
-  scoresSize = read<int>(d);
-  numPriors = read<int>(d);
-  mClipBoxes = read<bool>(d);
-  ASSERT(d == a + length);
+  deserialize_value(&data, &length, &param);
+  deserialize_value(&data, &length, &boxesSize);
+  deserialize_value(&data, &length, &scoresSize);
+  deserialize_value(&data, &length, &numPriors);
+  deserialize_value(&data, &length, &mClipBoxes);
 }
 
 int BatchedNMSPluginCustom::getNbOutputs() const { return 4; }
@@ -148,13 +140,11 @@ size_t BatchedNMSPluginCustom::getSerializationSize() const {
 }
 
 void BatchedNMSPluginCustom::serialize(void* buffer) const {
-  char *d = reinterpret_cast<char*>(buffer), *a = d;
-  write(d, param);
-  write(d, boxesSize);
-  write(d, scoresSize);
-  write(d, numPriors);
-  write(d, mClipBoxes);
-  ASSERT(d == a + getSerializationSize());
+  serialize_value(&buffer, param);
+  serialize_value(&buffer, boxesSize);
+  serialize_value(&buffer, scoresSize);
+  serialize_value(&buffer, numPriors);
+  serialize_value(&buffer, mClipBoxes);
 }
 
 void BatchedNMSPluginCustom::configurePlugin(

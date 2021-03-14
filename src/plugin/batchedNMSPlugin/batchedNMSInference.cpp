@@ -15,9 +15,7 @@
  */
 #include "bboxUtils.h"
 #include "cuda_runtime_api.h"
-#include "gatherNMSOutputs.h"
 #include "kernel.h"
-#include "nmsUtils.h"
 
 pluginStatus_t nmsInference(
     cudaStream_t stream, const int N, const int perBatchBoxesSize,

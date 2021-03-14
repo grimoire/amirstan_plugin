@@ -4,21 +4,8 @@
 #include "NvInferRuntimeCommon.h"
 #include "common.h"
 #include "cublas_v2.h"
-#include "logging.h"
-
-extern Logger gLogger;
-extern LogStreamConsumer gLogVerbose;
-extern LogStreamConsumer gLogInfo;
-extern LogStreamConsumer gLogWarning;
-extern LogStreamConsumer gLogError;
-extern LogStreamConsumer gLogFatal;
 
 namespace amirstan {
-
-constexpr uint32_t BDIM = 1;  // batch dimension
-constexpr uint32_t SDIM = 0;  // seq len dimension
-constexpr uint32_t HDIM = 2;  // hidden dimension
-
 inline void convertAndCopyToDevice(const nvinfer1::Weights &src,
                                    float *destDev) {
   size_t wordSize = sizeof(float);

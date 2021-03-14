@@ -40,18 +40,6 @@ struct BboxInfo {
   BboxInfo() = default;
 };
 
-template <typename TFloat>
-bool operator<(const Bbox<TFloat>& lhs, const Bbox<TFloat>& rhs) {
-  return lhs.x1 < rhs.x1;
-}
-
-template <typename TFloat>
-bool operator==(const Bbox<TFloat>& lhs, const Bbox<TFloat>& rhs) {
-  return lhs.x1 == rhs.x1 && lhs.y1 == rhs.y1 && lhs.x2 == rhs.x2 &&
-         lhs.y2 == rhs.y2;
-}
-// }}}
-
 int8_t* alignPtr(int8_t* ptr, uintptr_t to);
 
 int8_t* nextWorkspacePtr(int8_t* ptr, uintptr_t previousWorkspaceSize);
