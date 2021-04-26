@@ -17,7 +17,7 @@ namespace plugin {
 namespace {
 static const char *PLUGIN_VERSION{"1"};
 static const char *PLUGIN_NAME{"GridAnchorDynamicPluginDynamic"};
-}  // namespace
+} // namespace
 
 PluginFieldCollection GridAnchorDynamicPluginDynamicCreator::mFC{};
 std::vector<PluginField>
@@ -127,8 +127,8 @@ bool GridAnchorDynamicPluginDynamic::supportsFormatCombination(
     return inOut[0].type == nvinfer1::DataType::kFLOAT &&
            inOut[0].format == nvinfer1::TensorFormat::kLINEAR;
   } else {
-    return inOut[pos].type == inOut[pos].type &&
-           inOut[0].format == inOut[0].format;
+    return inOut[pos].type == inOut[0].type &&
+           inOut[pos].format == inOut[0].format;
   }
 }
 
@@ -268,5 +268,5 @@ const char *GridAnchorDynamicPluginDynamicCreator::getPluginNamespace() const {
   return mNamespace.c_str();
 }
 
-}  // namespace plugin
-}  // namespace amirstan
+} // namespace plugin
+} // namespace amirstan
