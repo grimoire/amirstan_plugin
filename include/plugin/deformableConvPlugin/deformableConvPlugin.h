@@ -8,6 +8,7 @@
 
 #include "NvInferPlugin.h"
 
+
 namespace amirstan {
 namespace plugin {
 
@@ -46,6 +47,9 @@ class DeformableConvPluginDynamic : public nvinfer1::IPluginV2DynamicExt {
               const nvinfer1::PluginTensorDesc *outputDesc,
               const void *const *inputs, void *const *outputs, void *workspace,
               cudaStream_t stream) override;
+  void attachToContext(cudnnContext *cudnnContext, cublasContext *cublasContext,
+                       nvinfer1::IGpuAllocator *gpuAllocator) override;
+  void detachFromContext() override;
 
   // IPluginV2Ext Methods
   nvinfer1::DataType getOutputDataType(int index,
@@ -75,7 +79,6 @@ class DeformableConvPluginDynamic : public nvinfer1::IPluginV2DynamicExt {
   int mGroup;
 
   cublasHandle_t m_cublas_handle;
-  cudaStream_t m_cuda_stream;
 
  protected:
   // To prevent compiler warnings.

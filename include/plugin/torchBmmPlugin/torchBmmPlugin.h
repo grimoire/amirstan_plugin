@@ -16,7 +16,7 @@ class TorchBmmPluginDynamic : public nvinfer1::IPluginV2DynamicExt {
   TorchBmmPluginDynamic(const std::string &name);
 
   TorchBmmPluginDynamic(const std::string name, const void *data,
-                           size_t length);
+                        size_t length);
 
   // It doesn't make sense to make TorchBmmPluginDynamic without arguments,
   // so we delete default constructor.

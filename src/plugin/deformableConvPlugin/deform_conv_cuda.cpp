@@ -11,7 +11,6 @@
 
 #include "amir_cuda_util/common_util.h"
 
-
 void deformable_im2col(float *data_input, float *data_offset,
                        const int channels, const int height, const int width,
                        const int ksize_h, const int ksize_w, const int pad_h,

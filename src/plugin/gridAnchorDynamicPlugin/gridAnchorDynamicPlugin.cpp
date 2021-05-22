@@ -17,7 +17,7 @@ namespace plugin {
 namespace {
 static const char *PLUGIN_VERSION{"1"};
 static const char *PLUGIN_NAME{"GridAnchorDynamicPluginDynamic"};
-} // namespace
+}  // namespace
 
 PluginFieldCollection GridAnchorDynamicPluginDynamicCreator::mFC{};
 std::vector<PluginField>
@@ -268,5 +268,5 @@ const char *GridAnchorDynamicPluginDynamicCreator::getPluginNamespace() const {
   return mNamespace.c_str();
 }
 
-} // namespace plugin
-} // namespace amirstan
+}  // namespace plugin
+}  // namespace amirstan

@@ -11,6 +11,7 @@
 #include "deform_conv_cuda.h"
 #include "serialize.hpp"
 
+
 namespace amirstan {
 namespace plugin {
 
@@ -122,12 +123,7 @@ int DeformableConvPluginDynamic::enqueue(
     const nvinfer1::PluginTensorDesc *inputDesc,
     const nvinfer1::PluginTensorDesc *outputDesc, const void *const *inputs,
     void *const *outputs, void *workSpace, cudaStream_t stream) {
-  if (m_cuda_stream != stream) {
-    cublasSetStream(m_cublas_handle, stream);
-    m_cuda_stream = stream;
-  }
   const static int im2col_step = 64;
-  // const size_t workspaceSize = getWorkspaceSize(inputDesc, 2, outputDesc, 1);
 
   int batch_size = inputDesc[0].dims.d[0];
   int inputChannel = inputDesc[0].dims.d[1];
@@ -180,14 +176,9 @@ const char *DeformableConvPluginDynamic::getPluginVersion() const {
 
 int DeformableConvPluginDynamic::getNbOutputs() const { return 1; }
 
-int DeformableConvPluginDynamic::initialize() {
-  cublasCreate(&m_cublas_handle);
-  return 0;
-}
+int DeformableConvPluginDynamic::initialize() { return 0; }
 
-void DeformableConvPluginDynamic::terminate() {
-  cublasDestroy(m_cublas_handle);
-}
+void DeformableConvPluginDynamic::terminate() {}
 
 size_t DeformableConvPluginDynamic::getSerializationSize() const {
   return sizeof(mStride) + sizeof(mPadding) + sizeof(mDilation) +
@@ -214,6 +205,14 @@ void DeformableConvPluginDynamic::setPluginNamespace(const char *libNamespace) {
 const char *DeformableConvPluginDynamic::getPluginNamespace() const {
   return mNamespace.c_str();
 }
+
+void DeformableConvPluginDynamic::attachToContext(
+    cudnnContext *cudnnContext, cublasContext *cublasContext,
+    nvinfer1::IGpuAllocator *gpuAllocator) {
+  m_cublas_handle = cublasContext;
+}
+
+void DeformableConvPluginDynamic::detachFromContext() {}
 
 ////////////////////// creator /////////////////////////////
 

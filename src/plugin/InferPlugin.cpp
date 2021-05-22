@@ -16,13 +16,13 @@
 #include "plugin/repeatDimsPlugin/repeatDimsPlugin.h"
 #include "plugin/roiExtractorPlugin/roiExtractorPlugin.h"
 #include "plugin/roiPoolPlugin/roiPoolPlugin.h"
+#include "plugin/torchBmmPlugin/torchBmmPlugin.h"
 #include "plugin/torchCumMaxMinPlugin/torchCumMaxMinPlugin.h"
 #include "plugin/torchCumPlugin/torchCumPlugin.h"
+#include "plugin/torchEmbeddingPlugin/torchEmbeddingPlugin.h"
 #include "plugin/torchFlipPlugin/torchFlipPlugin.h"
 #include "plugin/torchGatherPlugin/torchGatherPlugin.h"
 #include "plugin/torchNMSPlugin/torchNMSPlugin.h"
-#include "plugin/torchEmbeddingPlugin/torchEmbeddingPlugin.h"
-#include "plugin/torchBmmPlugin/torchBmmPlugin.h"
 
 namespace amirstan {
 namespace plugin {

@@ -11,7 +11,6 @@
 #include "deform_conv_cuda.h"
 #include "serialize.hpp"
 
-
 namespace amirstan {
 namespace plugin {
 
@@ -126,10 +125,6 @@ int ModulatedDeformableConvPluginDynamic::enqueue(
     const nvinfer1::PluginTensorDesc *outputDesc, const void *const *inputs,
     void *const *outputs, void *workSpace, cudaStream_t stream) {
   /// ALPHA
-  if (m_cuda_stream != stream) {
-    cublasSetStream(m_cublas_handle, stream);
-    m_cuda_stream = stream;
-  }
 
   int batch_size = inputDesc[0].dims.d[0];
   int inputChannel = inputDesc[0].dims.d[1];
@@ -186,14 +181,9 @@ const char *ModulatedDeformableConvPluginDynamic::getPluginVersion() const {
 
 int ModulatedDeformableConvPluginDynamic::getNbOutputs() const { return 1; }
 
-int ModulatedDeformableConvPluginDynamic::initialize() {
-  cublasCreate(&m_cublas_handle);
-  return 0;
-}
+int ModulatedDeformableConvPluginDynamic::initialize() { return 0; }
 
-void ModulatedDeformableConvPluginDynamic::terminate() {
-  cublasDestroy(m_cublas_handle);
-}
+void ModulatedDeformableConvPluginDynamic::terminate() {}
 
 size_t ModulatedDeformableConvPluginDynamic::getSerializationSize() const {
   return sizeof(mStride) + sizeof(mPadding) + sizeof(mDilation) +
@@ -212,6 +202,14 @@ void ModulatedDeformableConvPluginDynamic::destroy() {
   // This gets called when the network containing plugin is destroyed
   delete this;
 }
+
+void ModulatedDeformableConvPluginDynamic::attachToContext(
+    cudnnContext *cudnnContext, cublasContext *cublasContext,
+    nvinfer1::IGpuAllocator *gpuAllocator) {
+  m_cublas_handle = cublasContext;
+}
+
+void ModulatedDeformableConvPluginDynamic::detachFromContext() {}
 
 void ModulatedDeformableConvPluginDynamic::setPluginNamespace(
     const char *libNamespace) {
