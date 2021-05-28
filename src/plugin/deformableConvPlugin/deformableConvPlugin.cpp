@@ -11,7 +11,6 @@
 #include "deform_conv_cuda.h"
 #include "serialize.hpp"
 
-
 namespace amirstan {
 namespace plugin {
 
