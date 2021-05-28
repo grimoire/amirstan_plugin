@@ -8,7 +8,6 @@
 
 #include "NvInferPlugin.h"
 
-
 namespace amirstan {
 namespace plugin {
 
