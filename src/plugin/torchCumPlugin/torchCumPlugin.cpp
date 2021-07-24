@@ -58,6 +58,8 @@ bool TorchCumPluginDynamic::supportsFormatCombination(
   switch (pos) {
     case 0:
       return (in[0].type == nvinfer1::DataType::kFLOAT &&
+              in[0].format == nvinfer1::TensorFormat::kLINEAR) or
+             (in[0].type == nvinfer1::DataType::kINT32 &&
               in[0].format == nvinfer1::TensorFormat::kLINEAR);
     case 1:
       return out[0].type == in[0].type && out[0].format == in[0].format;
@@ -91,6 +93,10 @@ int TorchCumPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc,
       torch_cum<float>((float *)outputs[0], (float *)inputs[0],
                        &(input_dims.d[0]), input_dims.nbDims, mDim, mCumType,
                        stream);
+      break;
+    case nvinfer1::DataType::kINT32:
+      torch_cum<int>((int *)outputs[0], (int *)inputs[0], &(input_dims.d[0]),
+                     input_dims.nbDims, mDim, mCumType, stream);
       break;
     default:
       return 1;

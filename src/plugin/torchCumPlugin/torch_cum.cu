@@ -106,5 +106,9 @@ template void torch_cum<float>(float *output, const float *input,
                                int *input_dims, int nb_dims, int cum_dim,
                                int cum_type, cudaStream_t stream);
 
+template void torch_cum<int>(int *output, const int *input, int *input_dims,
+                             int nb_dims, int cum_dim, int cum_type,
+                             cudaStream_t stream);
+
 }  // namespace plugin
 }  // namespace amirstan
