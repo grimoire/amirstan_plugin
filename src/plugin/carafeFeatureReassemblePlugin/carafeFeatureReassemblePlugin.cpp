@@ -1,5 +1,5 @@
 
-#include "plugin/carafeFeatureReassemblePlugin/carafeFeatureReassemblePlugin.h"
+#include "carafeFeatureReassemblePlugin.h"
 
 #include <assert.h>
 
@@ -19,22 +19,16 @@ static const char *PLUGIN_VERSION{"1"};
 static const char *PLUGIN_NAME{"CarafeFeatureReassemblePluginDynamic"};
 }  // namespace
 
-PluginFieldCollection CarafeFeatureReassemblePluginDynamicCreator::mFC{};
-std::vector<PluginField>
-    CarafeFeatureReassemblePluginDynamicCreator::mPluginAttributes(
-        {PluginField("scale_factor"), PluginField("up_kernel"),
-         PluginField("up_group")});
-
 CarafeFeatureReassemblePluginDynamic::CarafeFeatureReassemblePluginDynamic(
     const std::string &name, int scaleFactor, int upKernel, int upGroup)
-    : mLayerName(name),
+    : PluginDynamicBase(name),
       mScaleFactor(scaleFactor),
       mUpKernel(upKernel),
       mUpGroup(upGroup) {}
 
 CarafeFeatureReassemblePluginDynamic::CarafeFeatureReassemblePluginDynamic(
     const std::string name, const void *data, size_t length)
-    : mLayerName(name) {
+    : PluginDynamicBase(name) {
   deserialize_value(&data, &length, &mScaleFactor);
   deserialize_value(&data, &length, &mUpKernel);
   deserialize_value(&data, &length, &mUpGroup);
@@ -44,7 +38,7 @@ CarafeFeatureReassemblePluginDynamic::CarafeFeatureReassemblePluginDynamic(
 }
 
 nvinfer1::IPluginV2DynamicExt *CarafeFeatureReassemblePluginDynamic::clone()
-    const {
+    const PLUGIN_NOEXCEPT {
   CarafeFeatureReassemblePluginDynamic *plugin =
       new CarafeFeatureReassemblePluginDynamic(mLayerName, mScaleFactor,
                                                mUpKernel, mUpGroup);
@@ -54,7 +48,7 @@ nvinfer1::IPluginV2DynamicExt *CarafeFeatureReassemblePluginDynamic::clone()
 
 nvinfer1::DimsExprs CarafeFeatureReassemblePluginDynamic::getOutputDimensions(
     int outputIndex, const nvinfer1::DimsExprs *inputs, int nbInputs,
-    nvinfer1::IExprBuilder &exprBuilder) {
+    nvinfer1::IExprBuilder &exprBuilder) PLUGIN_NOEXCEPT {
   assert(nbInputs == 2);
   assert(inputs[0].nbDims == 4);
 
@@ -76,7 +70,7 @@ nvinfer1::DimsExprs CarafeFeatureReassemblePluginDynamic::getOutputDimensions(
 
 bool CarafeFeatureReassemblePluginDynamic::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs,
-    int nbOutputs) {
+    int nbOutputs) PLUGIN_NOEXCEPT {
   assert(0 <= pos && pos < 3);
   const auto *in = inOut;
   const auto *out = inOut + nbInputs;
@@ -95,7 +89,8 @@ bool CarafeFeatureReassemblePluginDynamic::supportsFormatCombination(
 
 void CarafeFeatureReassemblePluginDynamic::configurePlugin(
     const nvinfer1::DynamicPluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::DynamicPluginTensorDesc *outputs, int nbOutputs) {
+    const nvinfer1::DynamicPluginTensorDesc *outputs,
+    int nbOutputs) PLUGIN_NOEXCEPT {
   // Validate input arguments
   assert(nbOutputs == 1);
   assert(nbInputs == 2);
@@ -104,7 +99,8 @@ void CarafeFeatureReassemblePluginDynamic::configurePlugin(
 
 size_t CarafeFeatureReassemblePluginDynamic::getWorkspaceSize(
     const nvinfer1::PluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::PluginTensorDesc *outputs, int nbOutputs) const {
+    const nvinfer1::PluginTensorDesc *outputs,
+    int nbOutputs) const PLUGIN_NOEXCEPT {
   int batch_size = inputs[0].dims.d[0];
   int inputHeight = inputs[0].dims.d[2];
   int inputWidth = inputs[0].dims.d[3];
@@ -128,7 +124,8 @@ size_t CarafeFeatureReassemblePluginDynamic::getWorkspaceSize(
 int CarafeFeatureReassemblePluginDynamic::enqueue(
     const nvinfer1::PluginTensorDesc *inputDesc,
     const nvinfer1::PluginTensorDesc *outputDesc, const void *const *inputs,
-    void *const *outputs, void *workSpace, cudaStream_t stream) {
+    void *const *outputs, void *workSpace,
+    cudaStream_t stream) PLUGIN_NOEXCEPT {
   int batch_size = inputDesc[0].dims.d[0];
   int inputHeight = inputDesc[0].dims.d[2];
   int inputWidth = inputDesc[0].dims.d[3];
@@ -165,74 +162,63 @@ int CarafeFeatureReassemblePluginDynamic::enqueue(
 
 // IPluginV2Ext Methods
 nvinfer1::DataType CarafeFeatureReassemblePluginDynamic::getOutputDataType(
-    int index, const nvinfer1::DataType *inputTypes, int nbInputs) const {
+    int index, const nvinfer1::DataType *inputTypes,
+    int nbInputs) const PLUGIN_NOEXCEPT {
   assert(nbInputs == 2);
   return inputTypes[0];
 }
 
 // IPluginV2 Methods
-const char *CarafeFeatureReassemblePluginDynamic::getPluginType() const {
+const char *CarafeFeatureReassemblePluginDynamic::getPluginType() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *CarafeFeatureReassemblePluginDynamic::getPluginVersion() const {
+const char *CarafeFeatureReassemblePluginDynamic::getPluginVersion() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-int CarafeFeatureReassemblePluginDynamic::getNbOutputs() const { return 1; }
+int CarafeFeatureReassemblePluginDynamic::getNbOutputs() const PLUGIN_NOEXCEPT {
+  return 1;
+}
 
-int CarafeFeatureReassemblePluginDynamic::initialize() { return 0; }
-
-void CarafeFeatureReassemblePluginDynamic::terminate() {}
-
-size_t CarafeFeatureReassemblePluginDynamic::getSerializationSize() const {
+size_t CarafeFeatureReassemblePluginDynamic::getSerializationSize() const
+    PLUGIN_NOEXCEPT {
   return sizeof(mScaleFactor) + sizeof(mUpKernel) + sizeof(mUpGroup);
 }
 
-void CarafeFeatureReassemblePluginDynamic::serialize(void *buffer) const {
+void CarafeFeatureReassemblePluginDynamic::serialize(void *buffer) const
+    PLUGIN_NOEXCEPT {
   serialize_value(&buffer, mScaleFactor);
   serialize_value(&buffer, mUpKernel);
   serialize_value(&buffer, mUpGroup);
-}
-
-void CarafeFeatureReassemblePluginDynamic::destroy() {
-  // This gets called when the network containing plugin is destroyed
-  delete this;
-}
-
-void CarafeFeatureReassemblePluginDynamic::setPluginNamespace(
-    const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *CarafeFeatureReassemblePluginDynamic::getPluginNamespace() const {
-  return mNamespace.c_str();
 }
 
 ////////////////////// creator /////////////////////////////
 
 CarafeFeatureReassemblePluginDynamicCreator::
     CarafeFeatureReassemblePluginDynamicCreator() {
+  mPluginAttributes = std::vector<PluginField>({PluginField("scale_factor"),
+                                                PluginField("up_kernel"),
+                                                PluginField("up_group")});
+
   mFC.nbFields = mPluginAttributes.size();
   mFC.fields = mPluginAttributes.data();
 }
 
-const char *CarafeFeatureReassemblePluginDynamicCreator::getPluginName() const {
+const char *CarafeFeatureReassemblePluginDynamicCreator::getPluginName() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
 const char *CarafeFeatureReassemblePluginDynamicCreator::getPluginVersion()
-    const {
+    const PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-const PluginFieldCollection *
-CarafeFeatureReassemblePluginDynamicCreator::getFieldNames() {
-  return &mFC;
-}
-
 IPluginV2 *CarafeFeatureReassemblePluginDynamicCreator::createPlugin(
-    const char *name, const PluginFieldCollection *fc) {
+    const char *name, const PluginFieldCollection *fc) PLUGIN_NOEXCEPT {
   int outDims = 0;
 
   int scaleFactor = 1;
@@ -267,23 +253,14 @@ IPluginV2 *CarafeFeatureReassemblePluginDynamicCreator::createPlugin(
 }
 
 IPluginV2 *CarafeFeatureReassemblePluginDynamicCreator::deserializePlugin(
-    const char *name, const void *serialData, size_t serialLength) {
+    const char *name, const void *serialData,
+    size_t serialLength) PLUGIN_NOEXCEPT {
   // This object will be deleted when the network is destroyed, which will
   // call FCPluginDynamic::destroy()
   auto plugin =
       new CarafeFeatureReassemblePluginDynamic(name, serialData, serialLength);
   plugin->setPluginNamespace(getPluginNamespace());
   return plugin;
-}
-
-void CarafeFeatureReassemblePluginDynamicCreator::setPluginNamespace(
-    const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *CarafeFeatureReassemblePluginDynamicCreator::getPluginNamespace()
-    const {
-  return mNamespace.c_str();
 }
 
 }  // namespace plugin

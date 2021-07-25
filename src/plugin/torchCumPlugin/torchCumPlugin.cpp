@@ -1,5 +1,5 @@
 
-#include "plugin/torchCumPlugin/torchCumPlugin.h"
+#include "torchCumPlugin.h"
 
 #include <assert.h>
 
@@ -19,22 +19,19 @@ static const char *PLUGIN_VERSION{"1"};
 static const char *PLUGIN_NAME{"TorchCumPluginDynamic"};
 }  // namespace
 
-PluginFieldCollection TorchCumPluginDynamicCreator::mFC{};
-std::vector<PluginField> TorchCumPluginDynamicCreator::mPluginAttributes(
-    {PluginField("mode"), PluginField("dim"), PluginField("cum_type")});
-
 TorchCumPluginDynamic::TorchCumPluginDynamic(const std::string &name, int dim,
                                              int cumType)
-    : mLayerName(name), mDim(dim), mCumType(cumType) {}
+    : PluginDynamicBase(name), mDim(dim), mCumType(cumType) {}
 
 TorchCumPluginDynamic::TorchCumPluginDynamic(const std::string name,
                                              const void *data, size_t length)
-    : mLayerName(name) {
+    : PluginDynamicBase(name) {
   deserialize_value(&data, &length, &mDim);
   deserialize_value(&data, &length, &mCumType);
 }
 
-nvinfer1::IPluginV2DynamicExt *TorchCumPluginDynamic::clone() const {
+nvinfer1::IPluginV2DynamicExt *TorchCumPluginDynamic::clone() const
+    PLUGIN_NOEXCEPT {
   TorchCumPluginDynamic *plugin =
       new TorchCumPluginDynamic(mLayerName, mDim, mCumType);
   plugin->setPluginNamespace(getPluginNamespace());
@@ -44,14 +41,14 @@ nvinfer1::IPluginV2DynamicExt *TorchCumPluginDynamic::clone() const {
 
 nvinfer1::DimsExprs TorchCumPluginDynamic::getOutputDimensions(
     int outputIndex, const nvinfer1::DimsExprs *inputs, int nbInputs,
-    nvinfer1::IExprBuilder &exprBuilder) {
+    nvinfer1::IExprBuilder &exprBuilder) PLUGIN_NOEXCEPT {
   nvinfer1::DimsExprs ret = inputs[0];
   return ret;
 }
 
 bool TorchCumPluginDynamic::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs,
-    int nbOutputs) {
+    int nbOutputs) PLUGIN_NOEXCEPT {
   const auto *in = inOut;
   const auto *out = inOut + nbInputs;
 
@@ -68,13 +65,15 @@ bool TorchCumPluginDynamic::supportsFormatCombination(
 
 void TorchCumPluginDynamic::configurePlugin(
     const nvinfer1::DynamicPluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::DynamicPluginTensorDesc *outputs, int nbOutputs) {
+    const nvinfer1::DynamicPluginTensorDesc *outputs,
+    int nbOutputs) PLUGIN_NOEXCEPT {
   // Validate input arguments
 }
 
 size_t TorchCumPluginDynamic::getWorkspaceSize(
     const nvinfer1::PluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::PluginTensorDesc *outputs, int nbOutputs) const {
+    const nvinfer1::PluginTensorDesc *outputs,
+    int nbOutputs) const PLUGIN_NOEXCEPT {
   return 0;
 }
 
@@ -82,7 +81,7 @@ int TorchCumPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc,
                                    const nvinfer1::PluginTensorDesc *outputDesc,
                                    const void *const *inputs,
                                    void *const *outputs, void *workSpace,
-                                   cudaStream_t stream) {
+                                   cudaStream_t stream) PLUGIN_NOEXCEPT {
   nvinfer1::Dims input_dims = inputDesc[0].dims;
   nvinfer1::Dims output_dims = outputDesc[0].dims;
 
@@ -107,66 +106,52 @@ int TorchCumPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc,
 }
 
 nvinfer1::DataType TorchCumPluginDynamic::getOutputDataType(
-    int index, const nvinfer1::DataType *inputTypes, int nbInputs) const {
+    int index, const nvinfer1::DataType *inputTypes,
+    int nbInputs) const PLUGIN_NOEXCEPT {
   return inputTypes[0];
 }
 
 // IPluginV2 Methods
-const char *TorchCumPluginDynamic::getPluginType() const { return PLUGIN_NAME; }
+const char *TorchCumPluginDynamic::getPluginType() const PLUGIN_NOEXCEPT {
+  return PLUGIN_NAME;
+}
 
-const char *TorchCumPluginDynamic::getPluginVersion() const {
+const char *TorchCumPluginDynamic::getPluginVersion() const PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-int TorchCumPluginDynamic::getNbOutputs() const { return 1; }
+int TorchCumPluginDynamic::getNbOutputs() const PLUGIN_NOEXCEPT { return 1; }
 
-int TorchCumPluginDynamic::initialize() { return 0; }
-
-void TorchCumPluginDynamic::terminate() {}
-
-size_t TorchCumPluginDynamic::getSerializationSize() const {
+size_t TorchCumPluginDynamic::getSerializationSize() const PLUGIN_NOEXCEPT {
   return sizeof(mDim) + sizeof(mCumType);
 }
 
-void TorchCumPluginDynamic::serialize(void *buffer) const {
+void TorchCumPluginDynamic::serialize(void *buffer) const PLUGIN_NOEXCEPT {
   serialize_value(&buffer, mDim);
   serialize_value(&buffer, mCumType);
-}
-
-void TorchCumPluginDynamic::destroy() {
-  // This gets called when the network containing plugin is destroyed
-  delete this;
-}
-
-void TorchCumPluginDynamic::setPluginNamespace(const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *TorchCumPluginDynamic::getPluginNamespace() const {
-  return mNamespace.c_str();
 }
 
 ////////////////////// creator /////////////////////////////
 
 TorchCumPluginDynamicCreator::TorchCumPluginDynamicCreator() {
+  mPluginAttributes = std::vector<PluginField>(
+      {PluginField("mode"), PluginField("dim"), PluginField("cum_type")});
   mFC.nbFields = mPluginAttributes.size();
   mFC.fields = mPluginAttributes.data();
 }
 
-const char *TorchCumPluginDynamicCreator::getPluginName() const {
+const char *TorchCumPluginDynamicCreator::getPluginName() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *TorchCumPluginDynamicCreator::getPluginVersion() const {
+const char *TorchCumPluginDynamicCreator::getPluginVersion() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-const PluginFieldCollection *TorchCumPluginDynamicCreator::getFieldNames() {
-  return &mFC;
-}
-
 IPluginV2 *TorchCumPluginDynamicCreator::createPlugin(
-    const char *name, const PluginFieldCollection *fc) {
+    const char *name, const PluginFieldCollection *fc) PLUGIN_NOEXCEPT {
   int dim = 0;
   int cumType = 0;
 
@@ -191,21 +176,13 @@ IPluginV2 *TorchCumPluginDynamicCreator::createPlugin(
 }
 
 IPluginV2 *TorchCumPluginDynamicCreator::deserializePlugin(
-    const char *name, const void *serialData, size_t serialLength) {
+    const char *name, const void *serialData,
+    size_t serialLength) PLUGIN_NOEXCEPT {
   // This object will be deleted when the network is destroyed, which will
   // call FCPluginDynamic::destroy()
   auto plugin = new TorchCumPluginDynamic(name, serialData, serialLength);
   plugin->setPluginNamespace(getPluginNamespace());
   return plugin;
-}
-
-void TorchCumPluginDynamicCreator::setPluginNamespace(
-    const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *TorchCumPluginDynamicCreator::getPluginNamespace() const {
-  return mNamespace.c_str();
 }
 
 }  // namespace plugin

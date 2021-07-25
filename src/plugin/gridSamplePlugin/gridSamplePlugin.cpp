@@ -1,5 +1,5 @@
 
-#include "plugin/gridSamplePlugin/gridSamplePlugin.h"
+#include "gridSamplePlugin.h"
 
 #include <assert.h>
 
@@ -19,15 +19,10 @@ static const char *PLUGIN_VERSION{"1"};
 static const char *PLUGIN_NAME{"GridSamplePluginDynamic"};
 }  // namespace
 
-PluginFieldCollection GridSamplePluginDynamicCreator::mFC{};
-std::vector<PluginField> GridSamplePluginDynamicCreator::mPluginAttributes(
-    {PluginField("mode"), PluginField("padding_mode"),
-     PluginField("align_corners")});
-
 GridSamplePluginDynamic::GridSamplePluginDynamic(const std::string &name,
                                                  int mode, int paddingMode,
                                                  bool alignCorners)
-    : mLayerName(name),
+    : PluginDynamicBase(name),
       mMode(mode),
       mPaddingMode(paddingMode),
       mAlignCorners(alignCorners) {}
@@ -35,13 +30,14 @@ GridSamplePluginDynamic::GridSamplePluginDynamic(const std::string &name,
 GridSamplePluginDynamic::GridSamplePluginDynamic(const std::string name,
                                                  const void *data,
                                                  size_t length)
-    : mLayerName(name) {
+    : PluginDynamicBase(name) {
   deserialize_value(&data, &length, &mMode);
   deserialize_value(&data, &length, &mPaddingMode);
   deserialize_value(&data, &length, &mAlignCorners);
 }
 
-nvinfer1::IPluginV2DynamicExt *GridSamplePluginDynamic::clone() const {
+nvinfer1::IPluginV2DynamicExt *GridSamplePluginDynamic::clone() const
+    PLUGIN_NOEXCEPT {
   GridSamplePluginDynamic *plugin = new GridSamplePluginDynamic(
       mLayerName, mMode, mPaddingMode, mAlignCorners);
   plugin->setPluginNamespace(getPluginNamespace());
@@ -51,7 +47,7 @@ nvinfer1::IPluginV2DynamicExt *GridSamplePluginDynamic::clone() const {
 
 nvinfer1::DimsExprs GridSamplePluginDynamic::getOutputDimensions(
     int outputIndex, const nvinfer1::DimsExprs *inputs, int nbInputs,
-    nvinfer1::IExprBuilder &exprBuilder) {
+    nvinfer1::IExprBuilder &exprBuilder) PLUGIN_NOEXCEPT {
   nvinfer1::DimsExprs ret;
   ret.nbDims = inputs[0].nbDims;
   ret.d[0] = inputs[0].d[0];
@@ -64,7 +60,7 @@ nvinfer1::DimsExprs GridSamplePluginDynamic::getOutputDimensions(
 
 bool GridSamplePluginDynamic::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs,
-    int nbOutputs) {
+    int nbOutputs) PLUGIN_NOEXCEPT {
   assert(0 <= pos && pos < 3);
   const auto *in = inOut;
   const auto *out = inOut + nbInputs;
@@ -82,20 +78,23 @@ bool GridSamplePluginDynamic::supportsFormatCombination(
 
 void GridSamplePluginDynamic::configurePlugin(
     const nvinfer1::DynamicPluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::DynamicPluginTensorDesc *outputs, int nbOutputs) {
+    const nvinfer1::DynamicPluginTensorDesc *outputs,
+    int nbOutputs) PLUGIN_NOEXCEPT {
   // Validate input arguments
 }
 
 size_t GridSamplePluginDynamic::getWorkspaceSize(
     const nvinfer1::PluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::PluginTensorDesc *outputs, int nbOutputs) const {
+    const nvinfer1::PluginTensorDesc *outputs,
+    int nbOutputs) const PLUGIN_NOEXCEPT {
   return 0;
 }
 
 int GridSamplePluginDynamic::enqueue(
     const nvinfer1::PluginTensorDesc *inputDesc,
     const nvinfer1::PluginTensorDesc *outputDesc, const void *const *inputs,
-    void *const *outputs, void *workSpace, cudaStream_t stream) {
+    void *const *outputs, void *workSpace,
+    cudaStream_t stream) PLUGIN_NOEXCEPT {
   nvinfer1::Dims input_dims = inputDesc[0].dims;
   nvinfer1::Dims grid_dims = inputDesc[1].dims;
   nvinfer1::Dims output_dims = outputDesc[0].dims;
@@ -158,69 +157,54 @@ int GridSamplePluginDynamic::enqueue(
 }
 
 nvinfer1::DataType GridSamplePluginDynamic::getOutputDataType(
-    int index, const nvinfer1::DataType *inputTypes, int nbInputs) const {
+    int index, const nvinfer1::DataType *inputTypes,
+    int nbInputs) const PLUGIN_NOEXCEPT {
   return inputTypes[0];
 }
 
 // IPluginV2 Methods
-const char *GridSamplePluginDynamic::getPluginType() const {
+const char *GridSamplePluginDynamic::getPluginType() const PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *GridSamplePluginDynamic::getPluginVersion() const {
+const char *GridSamplePluginDynamic::getPluginVersion() const PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-int GridSamplePluginDynamic::getNbOutputs() const { return 1; }
+int GridSamplePluginDynamic::getNbOutputs() const PLUGIN_NOEXCEPT { return 1; }
 
-int GridSamplePluginDynamic::initialize() { return 0; }
-
-void GridSamplePluginDynamic::terminate() {}
-
-size_t GridSamplePluginDynamic::getSerializationSize() const {
+size_t GridSamplePluginDynamic::getSerializationSize() const PLUGIN_NOEXCEPT {
   return sizeof(mMode) + sizeof(mPaddingMode) + sizeof(mAlignCorners);
 }
 
-void GridSamplePluginDynamic::serialize(void *buffer) const {
+void GridSamplePluginDynamic::serialize(void *buffer) const PLUGIN_NOEXCEPT {
   serialize_value(&buffer, mMode);
   serialize_value(&buffer, mPaddingMode);
   serialize_value(&buffer, mAlignCorners);
 }
 
-void GridSamplePluginDynamic::destroy() {
-  // This gets called when the network containing plugin is destroyed
-  delete this;
-}
-
-void GridSamplePluginDynamic::setPluginNamespace(const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *GridSamplePluginDynamic::getPluginNamespace() const {
-  return mNamespace.c_str();
-}
-
 ////////////////////// creator /////////////////////////////
 
 GridSamplePluginDynamicCreator::GridSamplePluginDynamicCreator() {
+  mPluginAttributes = std::vector<PluginField>({PluginField("mode"),
+                                                PluginField("padding_mode"),
+                                                PluginField("align_corners")});
   mFC.nbFields = mPluginAttributes.size();
   mFC.fields = mPluginAttributes.data();
 }
 
-const char *GridSamplePluginDynamicCreator::getPluginName() const {
+const char *GridSamplePluginDynamicCreator::getPluginName() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *GridSamplePluginDynamicCreator::getPluginVersion() const {
+const char *GridSamplePluginDynamicCreator::getPluginVersion() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-const PluginFieldCollection *GridSamplePluginDynamicCreator::getFieldNames() {
-  return &mFC;
-}
-
 IPluginV2 *GridSamplePluginDynamicCreator::createPlugin(
-    const char *name, const PluginFieldCollection *fc) {
+    const char *name, const PluginFieldCollection *fc) PLUGIN_NOEXCEPT {
   int mode = 0;
   int paddingMode = 0;
   bool alignCorners = false;
@@ -251,21 +235,13 @@ IPluginV2 *GridSamplePluginDynamicCreator::createPlugin(
 }
 
 IPluginV2 *GridSamplePluginDynamicCreator::deserializePlugin(
-    const char *name, const void *serialData, size_t serialLength) {
+    const char *name, const void *serialData,
+    size_t serialLength) PLUGIN_NOEXCEPT {
   // This object will be deleted when the network is destroyed, which will
   // call FCPluginDynamic::destroy()
   auto plugin = new GridSamplePluginDynamic(name, serialData, serialLength);
   plugin->setPluginNamespace(getPluginNamespace());
   return plugin;
-}
-
-void GridSamplePluginDynamicCreator::setPluginNamespace(
-    const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *GridSamplePluginDynamicCreator::getPluginNamespace() const {
-  return mNamespace.c_str();
 }
 
 }  // namespace plugin

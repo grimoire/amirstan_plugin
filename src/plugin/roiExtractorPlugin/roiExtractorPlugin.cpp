@@ -1,9 +1,11 @@
 
-#include "plugin/roiExtractorPlugin/roiExtractorPlugin.h"
+#include "roiExtractorPlugin.h"
 
 #include <assert.h>
 
 #include <chrono>
+
+
 // #include "group_norm.h"
 #include "amirCommon.h"
 #include "common.h"
@@ -18,17 +20,11 @@ static const char *PLUGIN_VERSION{"1"};
 static const char *PLUGIN_NAME{"RoiExtractorPluginDynamic"};
 }  // namespace
 
-PluginFieldCollection RoiExtractorPluginDynamicCreator::mFC{};
-std::vector<PluginField> RoiExtractorPluginDynamicCreator::mPluginAttributes(
-    {PluginField("out_size"), PluginField("sample_num"),
-     PluginField("featmap_strides"), PluginField("roi_scale_factor"),
-     PluginField("finest_scale"), PluginField("aligned")});
-
 RoiExtractorPluginDynamic::RoiExtractorPluginDynamic(
     const std::string &name, int outSize, int sampleNum,
     const std::vector<float> &featmapStrides, float roiScaleFactor,
     int finestScale, bool aligned)
-    : mLayerName(name),
+    : PluginDynamicBase(name),
       mOutSize(outSize),
       mSampleNum(sampleNum),
       mFeatmapStrides(featmapStrides),
@@ -39,7 +35,7 @@ RoiExtractorPluginDynamic::RoiExtractorPluginDynamic(
 RoiExtractorPluginDynamic::RoiExtractorPluginDynamic(const std::string name,
                                                      const void *data,
                                                      size_t length)
-    : mLayerName(name) {
+    : PluginDynamicBase(name) {
   deserialize_value(&data, &length, &mOutSize);
   deserialize_value(&data, &length, &mSampleNum);
   deserialize_value(&data, &length, &mRoiScaleFactor);
@@ -58,7 +54,8 @@ RoiExtractorPluginDynamic::RoiExtractorPluginDynamic(const std::string name,
   initialize();
 }
 
-nvinfer1::IPluginV2DynamicExt *RoiExtractorPluginDynamic::clone() const {
+nvinfer1::IPluginV2DynamicExt *RoiExtractorPluginDynamic::clone() const
+    PLUGIN_NOEXCEPT {
   RoiExtractorPluginDynamic *plugin = new RoiExtractorPluginDynamic(
       mLayerName, mOutSize, mSampleNum, mFeatmapStrides, mRoiScaleFactor,
       mFinestScale, mAligned);
@@ -69,7 +66,7 @@ nvinfer1::IPluginV2DynamicExt *RoiExtractorPluginDynamic::clone() const {
 
 nvinfer1::DimsExprs RoiExtractorPluginDynamic::getOutputDimensions(
     int outputIndex, const nvinfer1::DimsExprs *inputs, int nbInputs,
-    nvinfer1::IExprBuilder &exprBuilder) {
+    nvinfer1::IExprBuilder &exprBuilder) PLUGIN_NOEXCEPT {
   assert(nbInputs == mFeatmapStrides.size() + 1);
 
   nvinfer1::DimsExprs ret;
@@ -84,7 +81,7 @@ nvinfer1::DimsExprs RoiExtractorPluginDynamic::getOutputDimensions(
 
 bool RoiExtractorPluginDynamic::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs,
-    int nbOutputs) {
+    int nbOutputs) PLUGIN_NOEXCEPT {
   // assert(0 <= pos && pos < 2);
   const auto *in = inOut;
   const auto *out = inOut + nbInputs;
@@ -94,7 +91,8 @@ bool RoiExtractorPluginDynamic::supportsFormatCombination(
 
 void RoiExtractorPluginDynamic::configurePlugin(
     const nvinfer1::DynamicPluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::DynamicPluginTensorDesc *outputs, int nbOutputs) {
+    const nvinfer1::DynamicPluginTensorDesc *outputs,
+    int nbOutputs) PLUGIN_NOEXCEPT {
   // Validate input arguments
   assert(nbOutputs == 1);
   assert(nbInputs == mFeatmapStrides.size() + 1);
@@ -102,14 +100,16 @@ void RoiExtractorPluginDynamic::configurePlugin(
 
 size_t RoiExtractorPluginDynamic::getWorkspaceSize(
     const nvinfer1::PluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::PluginTensorDesc *outputs, int nbOutputs) const {
+    const nvinfer1::PluginTensorDesc *outputs,
+    int nbOutputs) const PLUGIN_NOEXCEPT {
   return 0;
 }
 
 int RoiExtractorPluginDynamic::enqueue(
     const nvinfer1::PluginTensorDesc *inputDesc,
     const nvinfer1::PluginTensorDesc *outputDesc, const void *const *inputs,
-    void *const *outputs, void *workSpace, cudaStream_t stream) {
+    void *const *outputs, void *workSpace,
+    cudaStream_t stream) PLUGIN_NOEXCEPT {
   int num_rois = inputDesc[0].dims.d[0];
   int batch_size = inputDesc[1].dims.d[0];
   int channels = inputDesc[1].dims.d[1];
@@ -138,32 +138,32 @@ int RoiExtractorPluginDynamic::enqueue(
 }
 
 nvinfer1::DataType RoiExtractorPluginDynamic::getOutputDataType(
-    int index, const nvinfer1::DataType *inputTypes, int nbInputs) const {
+    int index, const nvinfer1::DataType *inputTypes,
+    int nbInputs) const PLUGIN_NOEXCEPT {
   return nvinfer1::DataType::kFLOAT;
 }
 
 // IPluginV2 Methods
-const char *RoiExtractorPluginDynamic::getPluginType() const {
+const char *RoiExtractorPluginDynamic::getPluginType() const PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *RoiExtractorPluginDynamic::getPluginVersion() const {
+const char *RoiExtractorPluginDynamic::getPluginVersion() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-int RoiExtractorPluginDynamic::getNbOutputs() const { return 1; }
+int RoiExtractorPluginDynamic::getNbOutputs() const PLUGIN_NOEXCEPT {
+  return 1;
+}
 
-int RoiExtractorPluginDynamic::initialize() { return 0; }
-
-void RoiExtractorPluginDynamic::terminate() {}
-
-size_t RoiExtractorPluginDynamic::getSerializationSize() const {
+size_t RoiExtractorPluginDynamic::getSerializationSize() const PLUGIN_NOEXCEPT {
   return mFeatmapStrides.size() * sizeof(float) + sizeof(mOutSize) +
          sizeof(mSampleNum) + sizeof(mRoiScaleFactor) + sizeof(mFinestScale) +
          sizeof(mAligned) + sizeof(int);
 }
 
-void RoiExtractorPluginDynamic::serialize(void *buffer) const {
+void RoiExtractorPluginDynamic::serialize(void *buffer) const PLUGIN_NOEXCEPT {
   serialize_value(&buffer, mOutSize);
   serialize_value(&buffer, mSampleNum);
   serialize_value(&buffer, mRoiScaleFactor);
@@ -176,41 +176,30 @@ void RoiExtractorPluginDynamic::serialize(void *buffer) const {
   char *d = static_cast<char *>(buffer);
   serFromHost(d, mFeatmapStrides.data(), strides_size);
 }
-
-void RoiExtractorPluginDynamic::destroy() {
-  // This gets called when the network containing plugin is destroyed
-  delete this;
-}
-
-void RoiExtractorPluginDynamic::setPluginNamespace(const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *RoiExtractorPluginDynamic::getPluginNamespace() const {
-  return mNamespace.c_str();
-}
-
 ////////////////////// creator /////////////////////////////
 
 RoiExtractorPluginDynamicCreator::RoiExtractorPluginDynamicCreator() {
+  mPluginAttributes = std::vector<PluginField>(
+      {PluginField("out_size"), PluginField("sample_num"),
+       PluginField("featmap_strides"), PluginField("roi_scale_factor"),
+       PluginField("finest_scale"), PluginField("aligned")});
+
   mFC.nbFields = mPluginAttributes.size();
   mFC.fields = mPluginAttributes.data();
 }
 
-const char *RoiExtractorPluginDynamicCreator::getPluginName() const {
+const char *RoiExtractorPluginDynamicCreator::getPluginName() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *RoiExtractorPluginDynamicCreator::getPluginVersion() const {
+const char *RoiExtractorPluginDynamicCreator::getPluginVersion() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-const PluginFieldCollection *RoiExtractorPluginDynamicCreator::getFieldNames() {
-  return &mFC;
-}
-
 IPluginV2 *RoiExtractorPluginDynamicCreator::createPlugin(
-    const char *name, const PluginFieldCollection *fc) {
+    const char *name, const PluginFieldCollection *fc) PLUGIN_NOEXCEPT {
   int outSize = 7;
   int sampleNum = 2;
   std::vector<float> featmapStrides;
@@ -253,7 +242,7 @@ IPluginV2 *RoiExtractorPluginDynamicCreator::createPlugin(
   }
 
   if (featmapStrides.size() == 0) {
-    gLogError << "featmap_strides is zero" << std::endl;
+    std::cerr << "featmap_strides is zero" << std::endl;
   }
 
   RoiExtractorPluginDynamic *plugin =
@@ -264,21 +253,13 @@ IPluginV2 *RoiExtractorPluginDynamicCreator::createPlugin(
 }
 
 IPluginV2 *RoiExtractorPluginDynamicCreator::deserializePlugin(
-    const char *name, const void *serialData, size_t serialLength) {
+    const char *name, const void *serialData,
+    size_t serialLength) PLUGIN_NOEXCEPT {
   // This object will be deleted when the network is destroyed, which will
   // call FCPluginDynamic::destroy()
   auto plugin = new RoiExtractorPluginDynamic(name, serialData, serialLength);
   plugin->setPluginNamespace(getPluginNamespace());
   return plugin;
-}
-
-void RoiExtractorPluginDynamicCreator::setPluginNamespace(
-    const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *RoiExtractorPluginDynamicCreator::getPluginNamespace() const {
-  return mNamespace.c_str();
 }
 
 }  // namespace plugin

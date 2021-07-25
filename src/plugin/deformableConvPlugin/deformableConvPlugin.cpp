@@ -1,5 +1,5 @@
 
-#include "plugin/deformableConvPlugin/deformableConvPlugin.h"
+#include "deformableConvPlugin.h"
 
 #include <assert.h>
 
@@ -11,6 +11,7 @@
 #include "deform_conv_cuda.h"
 #include "serialize.hpp"
 
+
 namespace amirstan {
 namespace plugin {
 
@@ -19,16 +20,11 @@ static const char *DCN_VERSION{"1"};
 static const char *DCN_NAME{"DeformableConvPluginDynamic"};
 }  // namespace
 
-PluginFieldCollection DeformableConvPluginDynamicCreator::mFC{};
-std::vector<PluginField> DeformableConvPluginDynamicCreator::mPluginAttributes(
-    {PluginField("stride"), PluginField("padding"), PluginField("dilation"),
-     PluginField("deformable_group"), PluginField("group")});
-
 DeformableConvPluginDynamic::DeformableConvPluginDynamic(
     const std::string &name, const nvinfer1::Dims &stride,
     const nvinfer1::Dims &padding, const nvinfer1::Dims &dilation,
     const int deformableGroup, const int group)
-    : mLayerName(name),
+    : PluginDynamicBase(name),
       mStride(stride),
       mPadding(padding),
       mDilation(dilation),
@@ -40,7 +36,7 @@ DeformableConvPluginDynamic::DeformableConvPluginDynamic(
 DeformableConvPluginDynamic::DeformableConvPluginDynamic(const std::string name,
                                                          const void *data,
                                                          size_t length)
-    : mLayerName(name) {
+    : PluginDynamicBase(name) {
   deserialize_value(&data, &length, &mStride);
   deserialize_value(&data, &length, &mPadding);
   deserialize_value(&data, &length, &mDilation);
@@ -50,7 +46,8 @@ DeformableConvPluginDynamic::DeformableConvPluginDynamic(const std::string name,
   initialize();
 }
 
-nvinfer1::IPluginV2DynamicExt *DeformableConvPluginDynamic::clone() const {
+nvinfer1::IPluginV2DynamicExt *DeformableConvPluginDynamic::clone() const
+    PLUGIN_NOEXCEPT {
   DeformableConvPluginDynamic *plugin = new DeformableConvPluginDynamic(
       mLayerName, mStride, mPadding, mDilation, mDeformableGroup, mGroup);
   plugin->setPluginNamespace(getPluginNamespace());
@@ -60,7 +57,7 @@ nvinfer1::IPluginV2DynamicExt *DeformableConvPluginDynamic::clone() const {
 
 nvinfer1::DimsExprs DeformableConvPluginDynamic::getOutputDimensions(
     int outputIndex, const nvinfer1::DimsExprs *inputs, int nbInputs,
-    nvinfer1::IExprBuilder &exprBuilder) {
+    nvinfer1::IExprBuilder &exprBuilder) PLUGIN_NOEXCEPT {
   nvinfer1::DimsExprs ret;
   ret.nbDims = 4;
   ret.d[0] = inputs[0].d[0];
@@ -74,7 +71,7 @@ nvinfer1::DimsExprs DeformableConvPluginDynamic::getOutputDimensions(
 
 bool DeformableConvPluginDynamic::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs,
-    int nbOutputs) {
+    int nbOutputs) PLUGIN_NOEXCEPT {
   if (pos == 0) {
     return inOut[0].type == DataType::kFLOAT &&
            inOut[0].format == nvinfer1::TensorFormat::kLINEAR;
@@ -86,11 +83,13 @@ bool DeformableConvPluginDynamic::supportsFormatCombination(
 
 void DeformableConvPluginDynamic::configurePlugin(
     const nvinfer1::DynamicPluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::DynamicPluginTensorDesc *outputs, int nbOutputs) {}
+    const nvinfer1::DynamicPluginTensorDesc *outputs,
+    int nbOutputs) PLUGIN_NOEXCEPT {}
 
 size_t DeformableConvPluginDynamic::getWorkspaceSize(
     const nvinfer1::PluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::PluginTensorDesc *outputs, int nbOutputs) const {
+    const nvinfer1::PluginTensorDesc *outputs,
+    int nbOutputs) const PLUGIN_NOEXCEPT {
   int sizeof_dtype = samplesCommon::getElementSize(outputs[0].type);
 
   int batch_size = inputs[0].dims.d[0];
@@ -121,7 +120,8 @@ size_t DeformableConvPluginDynamic::getWorkspaceSize(
 int DeformableConvPluginDynamic::enqueue(
     const nvinfer1::PluginTensorDesc *inputDesc,
     const nvinfer1::PluginTensorDesc *outputDesc, const void *const *inputs,
-    void *const *outputs, void *workSpace, cudaStream_t stream) {
+    void *const *outputs, void *workSpace,
+    cudaStream_t stream) PLUGIN_NOEXCEPT {
   const static int im2col_step = 64;
 
   int batch_size = inputDesc[0].dims.d[0];
@@ -160,31 +160,33 @@ int DeformableConvPluginDynamic::enqueue(
 
 // IPluginV2Ext Methods
 nvinfer1::DataType DeformableConvPluginDynamic::getOutputDataType(
-    int index, const nvinfer1::DataType *inputTypes, int nbInputs) const {
+    int index, const nvinfer1::DataType *inputTypes,
+    int nbInputs) const PLUGIN_NOEXCEPT {
   return inputTypes[0];
 }
 
 // IPluginV2 Methods
-const char *DeformableConvPluginDynamic::getPluginType() const {
+const char *DeformableConvPluginDynamic::getPluginType() const PLUGIN_NOEXCEPT {
   return DCN_NAME;
 }
 
-const char *DeformableConvPluginDynamic::getPluginVersion() const {
+const char *DeformableConvPluginDynamic::getPluginVersion() const
+    PLUGIN_NOEXCEPT {
   return DCN_VERSION;
 }
 
-int DeformableConvPluginDynamic::getNbOutputs() const { return 1; }
+int DeformableConvPluginDynamic::getNbOutputs() const PLUGIN_NOEXCEPT {
+  return 1;
+}
 
-int DeformableConvPluginDynamic::initialize() { return 0; }
-
-void DeformableConvPluginDynamic::terminate() {}
-
-size_t DeformableConvPluginDynamic::getSerializationSize() const {
+size_t DeformableConvPluginDynamic::getSerializationSize() const
+    PLUGIN_NOEXCEPT {
   return sizeof(mStride) + sizeof(mPadding) + sizeof(mDilation) +
          sizeof(mDeformableGroup) + sizeof(mGroup);
 }
 
-void DeformableConvPluginDynamic::serialize(void *buffer) const {
+void DeformableConvPluginDynamic::serialize(void *buffer) const
+    PLUGIN_NOEXCEPT {
   serialize_value(&buffer, mStride);
   serialize_value(&buffer, mPadding);
   serialize_value(&buffer, mDilation);
@@ -192,49 +194,36 @@ void DeformableConvPluginDynamic::serialize(void *buffer) const {
   serialize_value(&buffer, mGroup);
 }
 
-void DeformableConvPluginDynamic::destroy() {
-  // This gets called when the network containing plugin is destroyed
-  delete this;
-}
-
-void DeformableConvPluginDynamic::setPluginNamespace(const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *DeformableConvPluginDynamic::getPluginNamespace() const {
-  return mNamespace.c_str();
-}
-
 void DeformableConvPluginDynamic::attachToContext(
     cudnnContext *cudnnContext, cublasContext *cublasContext,
-    nvinfer1::IGpuAllocator *gpuAllocator) {
+    nvinfer1::IGpuAllocator *gpuAllocator) PLUGIN_NOEXCEPT {
   m_cublas_handle = cublasContext;
 }
 
-void DeformableConvPluginDynamic::detachFromContext() {}
+void DeformableConvPluginDynamic::detachFromContext() PLUGIN_NOEXCEPT {}
 
 ////////////////////// creator /////////////////////////////
 
 DeformableConvPluginDynamicCreator::DeformableConvPluginDynamicCreator() {
+  mPluginAttributes = std::vector<PluginField>(
+      {PluginField("stride"), PluginField("padding"), PluginField("dilation"),
+       PluginField("deformable_group"), PluginField("group")});
   mFC.nbFields = mPluginAttributes.size();
   mFC.fields = mPluginAttributes.data();
 }
 
-const char *DeformableConvPluginDynamicCreator::getPluginName() const {
+const char *DeformableConvPluginDynamicCreator::getPluginName() const
+    PLUGIN_NOEXCEPT {
   return DCN_NAME;
 }
 
-const char *DeformableConvPluginDynamicCreator::getPluginVersion() const {
+const char *DeformableConvPluginDynamicCreator::getPluginVersion() const
+    PLUGIN_NOEXCEPT {
   return DCN_VERSION;
 }
 
-const PluginFieldCollection *
-DeformableConvPluginDynamicCreator::getFieldNames() {
-  return &mFC;
-}
-
 IPluginV2 *DeformableConvPluginDynamicCreator::createPlugin(
-    const char *name, const PluginFieldCollection *fc) {
+    const char *name, const PluginFieldCollection *fc) PLUGIN_NOEXCEPT {
   nvinfer1::Dims stride{2, {1, 1}};
   nvinfer1::Dims padding{2, {0, 0}};
   nvinfer1::Dims dilation{2, {1, 1}};
@@ -280,21 +269,13 @@ IPluginV2 *DeformableConvPluginDynamicCreator::createPlugin(
 }
 
 IPluginV2 *DeformableConvPluginDynamicCreator::deserializePlugin(
-    const char *name, const void *serialData, size_t serialLength) {
+    const char *name, const void *serialData,
+    size_t serialLength) PLUGIN_NOEXCEPT {
   // This object will be deleted when the network is destroyed, which will
   // call FCPluginDynamic::destroy()
   auto plugin = new DeformableConvPluginDynamic(name, serialData, serialLength);
   plugin->setPluginNamespace(getPluginNamespace());
   return plugin;
-}
-
-void DeformableConvPluginDynamicCreator::setPluginNamespace(
-    const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *DeformableConvPluginDynamicCreator::getPluginNamespace() const {
-  return mNamespace.c_str();
 }
 
 }  // namespace plugin

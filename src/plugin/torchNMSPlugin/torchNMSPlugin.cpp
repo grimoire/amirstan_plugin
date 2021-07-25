@@ -1,5 +1,5 @@
 
-#include "plugin/torchNMSPlugin/torchNMSPlugin.h"
+#include "torchNMSPlugin.h"
 
 #include <assert.h>
 
@@ -20,21 +20,18 @@ static const char *PLUGIN_VERSION{"1"};
 static const char *PLUGIN_NAME{"TorchNMSPluginDynamic"};
 }  // namespace
 
-PluginFieldCollection TorchNMSPluginDynamicCreator::mFC{};
-std::vector<PluginField> TorchNMSPluginDynamicCreator::mPluginAttributes(
-    {PluginField("iou_threshold")});
-
 TorchNMSPluginDynamic::TorchNMSPluginDynamic(const std::string &name,
                                              float iouThreshold)
-    : mLayerName(name), mIouThreshold(iouThreshold) {}
+    : PluginDynamicBase(name), mIouThreshold(iouThreshold) {}
 
 TorchNMSPluginDynamic::TorchNMSPluginDynamic(const std::string name,
                                              const void *data, size_t length)
-    : mLayerName(name) {
+    : PluginDynamicBase(name) {
   deserialize_value(&data, &length, &mIouThreshold);
 }
 
-nvinfer1::IPluginV2DynamicExt *TorchNMSPluginDynamic::clone() const {
+nvinfer1::IPluginV2DynamicExt *TorchNMSPluginDynamic::clone() const
+    PLUGIN_NOEXCEPT {
   TorchNMSPluginDynamic *plugin =
       new TorchNMSPluginDynamic(mLayerName, mIouThreshold);
   plugin->setPluginNamespace(getPluginNamespace());
@@ -44,14 +41,14 @@ nvinfer1::IPluginV2DynamicExt *TorchNMSPluginDynamic::clone() const {
 
 nvinfer1::DimsExprs TorchNMSPluginDynamic::getOutputDimensions(
     int outputIndex, const nvinfer1::DimsExprs *inputs, int nbInputs,
-    nvinfer1::IExprBuilder &exprBuilder) {
+    nvinfer1::IExprBuilder &exprBuilder) PLUGIN_NOEXCEPT {
   nvinfer1::DimsExprs ret = inputs[1];
   return ret;
 }
 
 bool TorchNMSPluginDynamic::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs,
-    int nbOutputs) {
+    int nbOutputs) PLUGIN_NOEXCEPT {
   const auto *in = inOut;
   const auto *out = inOut + nbInputs;
 
@@ -70,13 +67,15 @@ bool TorchNMSPluginDynamic::supportsFormatCombination(
 
 void TorchNMSPluginDynamic::configurePlugin(
     const nvinfer1::DynamicPluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::DynamicPluginTensorDesc *outputs, int nbOutputs) {
+    const nvinfer1::DynamicPluginTensorDesc *outputs,
+    int nbOutputs) PLUGIN_NOEXCEPT {
   // Validate input arguments
 }
 
 size_t TorchNMSPluginDynamic::getWorkspaceSize(
     const nvinfer1::PluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::PluginTensorDesc *outputs, int nbOutputs) const {
+    const nvinfer1::PluginTensorDesc *outputs,
+    int nbOutputs) const PLUGIN_NOEXCEPT {
   int num_bbox = inputs[1].dims.d[0];
   auto data_type = inputs[1].type;
   size_t tmp_score_workspace = 0;
@@ -105,7 +104,7 @@ int TorchNMSPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc,
                                    const nvinfer1::PluginTensorDesc *outputDesc,
                                    const void *const *inputs,
                                    void *const *outputs, void *workSpace,
-                                   cudaStream_t stream) {
+                                   cudaStream_t stream) PLUGIN_NOEXCEPT {
   nvinfer1::Dims score_dims = inputDesc[1].dims;
   nvinfer1::Dims output_dims = outputDesc[0].dims;
 
@@ -127,65 +126,51 @@ int TorchNMSPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc,
 }
 
 nvinfer1::DataType TorchNMSPluginDynamic::getOutputDataType(
-    int index, const nvinfer1::DataType *inputTypes, int nbInputs) const {
+    int index, const nvinfer1::DataType *inputTypes,
+    int nbInputs) const PLUGIN_NOEXCEPT {
   return nvinfer1::DataType::kINT32;
 }
 
 // IPluginV2 Methods
-const char *TorchNMSPluginDynamic::getPluginType() const { return PLUGIN_NAME; }
+const char *TorchNMSPluginDynamic::getPluginType() const PLUGIN_NOEXCEPT {
+  return PLUGIN_NAME;
+}
 
-const char *TorchNMSPluginDynamic::getPluginVersion() const {
+const char *TorchNMSPluginDynamic::getPluginVersion() const PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-int TorchNMSPluginDynamic::getNbOutputs() const { return 1; }
+int TorchNMSPluginDynamic::getNbOutputs() const PLUGIN_NOEXCEPT { return 1; }
 
-int TorchNMSPluginDynamic::initialize() { return 0; }
-
-void TorchNMSPluginDynamic::terminate() {}
-
-size_t TorchNMSPluginDynamic::getSerializationSize() const {
+size_t TorchNMSPluginDynamic::getSerializationSize() const PLUGIN_NOEXCEPT {
   return sizeof(mIouThreshold);
 }
 
-void TorchNMSPluginDynamic::serialize(void *buffer) const {
+void TorchNMSPluginDynamic::serialize(void *buffer) const PLUGIN_NOEXCEPT {
   serialize_value(&buffer, mIouThreshold);
-}
-
-void TorchNMSPluginDynamic::destroy() {
-  // This gets called when the network containing plugin is destroyed
-  delete this;
-}
-
-void TorchNMSPluginDynamic::setPluginNamespace(const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *TorchNMSPluginDynamic::getPluginNamespace() const {
-  return mNamespace.c_str();
 }
 
 ////////////////////// creator /////////////////////////////
 
 TorchNMSPluginDynamicCreator::TorchNMSPluginDynamicCreator() {
+  mPluginAttributes = std::vector<PluginField>({PluginField("iou_threshold")});
+
   mFC.nbFields = mPluginAttributes.size();
   mFC.fields = mPluginAttributes.data();
 }
 
-const char *TorchNMSPluginDynamicCreator::getPluginName() const {
+const char *TorchNMSPluginDynamicCreator::getPluginName() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *TorchNMSPluginDynamicCreator::getPluginVersion() const {
+const char *TorchNMSPluginDynamicCreator::getPluginVersion() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-const PluginFieldCollection *TorchNMSPluginDynamicCreator::getFieldNames() {
-  return &mFC;
-}
-
 IPluginV2 *TorchNMSPluginDynamicCreator::createPlugin(
-    const char *name, const PluginFieldCollection *fc) {
+    const char *name, const PluginFieldCollection *fc) PLUGIN_NOEXCEPT {
   float iou_threshold = 0.;
 
   for (int i = 0; i < fc->nbFields; i++) {
@@ -206,21 +191,13 @@ IPluginV2 *TorchNMSPluginDynamicCreator::createPlugin(
 }
 
 IPluginV2 *TorchNMSPluginDynamicCreator::deserializePlugin(
-    const char *name, const void *serialData, size_t serialLength) {
+    const char *name, const void *serialData,
+    size_t serialLength) PLUGIN_NOEXCEPT {
   // This object will be deleted when the network is destroyed, which will
   // call FCPluginDynamic::destroy()
   auto plugin = new TorchNMSPluginDynamic(name, serialData, serialLength);
   plugin->setPluginNamespace(getPluginNamespace());
   return plugin;
-}
-
-void TorchNMSPluginDynamicCreator::setPluginNamespace(
-    const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *TorchNMSPluginDynamicCreator::getPluginNamespace() const {
-  return mNamespace.c_str();
 }
 
 }  // namespace plugin

@@ -11,10 +11,10 @@ inline void convertAndCopyToDevice(const nvinfer1::Weights &src,
   size_t wordSize = sizeof(float);
   size_t nbBytes = src.count * wordSize;
   if (src.type == nvinfer1::DataType::kFLOAT) {
-    gLogVerbose << "Float Weights(Host) => Float Array(Device)" << std::endl;
+    std::cout << "Float Weights(Host) => Float Array(Device)" << std::endl;
     CHECK(cudaMemcpy(destDev, src.values, nbBytes, cudaMemcpyHostToDevice));
   } else {
-    gLogVerbose << "Half Weights(Host) => Float Array(Device)" << std::endl;
+    std::cout << "Half Weights(Host) => Float Array(Device)" << std::endl;
     std::vector<float> tmp(src.count);
     const half *values = reinterpret_cast<const half *>(src.values);
 
@@ -66,19 +66,19 @@ inline nvinfer1::DataType fieldTypeToDataType(
     const nvinfer1::PluginFieldType ftype) {
   switch (ftype) {
     case nvinfer1::PluginFieldType::kFLOAT32: {
-      gLogVerbose << "PluginFieldType is Float32" << std::endl;
+      std::cout << "PluginFieldType is Float32" << std::endl;
       return nvinfer1::DataType::kFLOAT;
     }
     case nvinfer1::PluginFieldType::kFLOAT16: {
-      gLogVerbose << "PluginFieldType is Float16" << std::endl;
+      std::cout << "PluginFieldType is Float16" << std::endl;
       return nvinfer1::DataType::kHALF;
     }
     case nvinfer1::PluginFieldType::kINT32: {
-      gLogVerbose << "PluginFieldType is Int32" << std::endl;
+      std::cout << "PluginFieldType is Int32" << std::endl;
       return nvinfer1::DataType::kINT32;
     }
     case nvinfer1::PluginFieldType::kINT8: {
-      gLogVerbose << "PluginFieldType is Int8" << std::endl;
+      std::cout << "PluginFieldType is Int8" << std::endl;
       return nvinfer1::DataType::kINT8;
     }
     default:

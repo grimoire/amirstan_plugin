@@ -1,5 +1,5 @@
 
-#include "plugin/torchGatherPlugin/torchGatherPlugin.h"
+#include "torchGatherPlugin.h"
 
 #include <assert.h>
 
@@ -19,24 +19,19 @@ static const char *PLUGIN_VERSION{"1"};
 static const char *PLUGIN_NAME{"TorchGatherPluginDynamic"};
 }  // namespace
 
-PluginFieldCollection TorchGatherPluginDynamicCreator::mFC{};
-std::vector<PluginField> TorchGatherPluginDynamicCreator::mPluginAttributes(
-    {PluginField("repeat_dims")});
-
 TorchGatherPluginDynamic::TorchGatherPluginDynamic(const std::string &name,
                                                    int dim)
-    : mLayerName(name), mDim(dim) {}
+    : PluginDynamicBase(name), mDim(dim) {}
 
 TorchGatherPluginDynamic::TorchGatherPluginDynamic(const std::string name,
                                                    const void *data,
                                                    size_t length)
-    : mLayerName(name) {
+    : PluginDynamicBase(name) {
   deserialize_value(&data, &length, &mDim);
-
-  initialize();
 }
 
-nvinfer1::IPluginV2DynamicExt *TorchGatherPluginDynamic::clone() const {
+nvinfer1::IPluginV2DynamicExt *TorchGatherPluginDynamic::clone() const
+    PLUGIN_NOEXCEPT {
   TorchGatherPluginDynamic *plugin =
       new TorchGatherPluginDynamic(mLayerName, mDim);
   plugin->setPluginNamespace(getPluginNamespace());
@@ -46,13 +41,13 @@ nvinfer1::IPluginV2DynamicExt *TorchGatherPluginDynamic::clone() const {
 
 nvinfer1::DimsExprs TorchGatherPluginDynamic::getOutputDimensions(
     int outputIndex, const nvinfer1::DimsExprs *inputs, int nbInputs,
-    nvinfer1::IExprBuilder &exprBuilder) {
+    nvinfer1::IExprBuilder &exprBuilder) PLUGIN_NOEXCEPT {
   return inputs[1];
 }
 
 bool TorchGatherPluginDynamic::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs,
-    int nbOutputs) {
+    int nbOutputs) PLUGIN_NOEXCEPT {
   assert(0 <= pos && pos < 3);
   const auto *in = inOut;
   const auto *out = inOut + nbInputs;
@@ -75,7 +70,8 @@ bool TorchGatherPluginDynamic::supportsFormatCombination(
 
 void TorchGatherPluginDynamic::configurePlugin(
     const nvinfer1::DynamicPluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::DynamicPluginTensorDesc *outputs, int nbOutputs) {
+    const nvinfer1::DynamicPluginTensorDesc *outputs,
+    int nbOutputs) PLUGIN_NOEXCEPT {
   // Validate input arguments
   assert(nbOutputs == 1);
   assert(nbInputs == 2);
@@ -83,14 +79,16 @@ void TorchGatherPluginDynamic::configurePlugin(
 
 size_t TorchGatherPluginDynamic::getWorkspaceSize(
     const nvinfer1::PluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::PluginTensorDesc *outputs, int nbOutputs) const {
+    const nvinfer1::PluginTensorDesc *outputs,
+    int nbOutputs) const PLUGIN_NOEXCEPT {
   return 0;
 }
 
 int TorchGatherPluginDynamic::enqueue(
     const nvinfer1::PluginTensorDesc *inputDesc,
     const nvinfer1::PluginTensorDesc *outputDesc, const void *const *inputs,
-    void *const *outputs, void *workSpace, cudaStream_t stream) {
+    void *const *outputs, void *workSpace,
+    cudaStream_t stream) PLUGIN_NOEXCEPT {
   nvinfer1::Dims input_dims = inputDesc[0].dims;
   nvinfer1::Dims index_dims = inputDesc[1].dims;
 
@@ -123,68 +121,51 @@ int TorchGatherPluginDynamic::enqueue(
 }
 
 nvinfer1::DataType TorchGatherPluginDynamic::getOutputDataType(
-    int index, const nvinfer1::DataType *inputTypes, int nbInputs) const {
+    int index, const nvinfer1::DataType *inputTypes,
+    int nbInputs) const PLUGIN_NOEXCEPT {
   assert(nbInputs == 2);
   return inputTypes[0];
 }
 
 // IPluginV2 Methods
-const char *TorchGatherPluginDynamic::getPluginType() const {
+const char *TorchGatherPluginDynamic::getPluginType() const PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *TorchGatherPluginDynamic::getPluginVersion() const {
+const char *TorchGatherPluginDynamic::getPluginVersion() const PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-int TorchGatherPluginDynamic::getNbOutputs() const { return 1; }
+int TorchGatherPluginDynamic::getNbOutputs() const PLUGIN_NOEXCEPT { return 1; }
 
-int TorchGatherPluginDynamic::initialize() { return 0; }
-
-void TorchGatherPluginDynamic::terminate() {}
-
-size_t TorchGatherPluginDynamic::getSerializationSize() const {
+size_t TorchGatherPluginDynamic::getSerializationSize() const PLUGIN_NOEXCEPT {
   return sizeof(mDim);
 }
 
-void TorchGatherPluginDynamic::serialize(void *buffer) const {
+void TorchGatherPluginDynamic::serialize(void *buffer) const PLUGIN_NOEXCEPT {
   serialize_value(&buffer, mDim);
-}
-
-void TorchGatherPluginDynamic::destroy() {
-  // This gets called when the network containing plugin is destroyed
-  delete this;
-}
-
-void TorchGatherPluginDynamic::setPluginNamespace(const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *TorchGatherPluginDynamic::getPluginNamespace() const {
-  return mNamespace.c_str();
 }
 
 ////////////////////// creator /////////////////////////////
 
 TorchGatherPluginDynamicCreator::TorchGatherPluginDynamicCreator() {
+  mPluginAttributes = std::vector<PluginField>({PluginField("repeat_dims")});
   mFC.nbFields = mPluginAttributes.size();
   mFC.fields = mPluginAttributes.data();
 }
 
-const char *TorchGatherPluginDynamicCreator::getPluginName() const {
+const char *TorchGatherPluginDynamicCreator::getPluginName() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *TorchGatherPluginDynamicCreator::getPluginVersion() const {
+const char *TorchGatherPluginDynamicCreator::getPluginVersion() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-const PluginFieldCollection *TorchGatherPluginDynamicCreator::getFieldNames() {
-  return &mFC;
-}
-
 IPluginV2 *TorchGatherPluginDynamicCreator::createPlugin(
-    const char *name, const PluginFieldCollection *fc) {
+    const char *name, const PluginFieldCollection *fc) PLUGIN_NOEXCEPT {
   int dim = 0;
 
   for (int i = 0; i < fc->nbFields; i++) {
@@ -204,22 +185,13 @@ IPluginV2 *TorchGatherPluginDynamicCreator::createPlugin(
 }
 
 IPluginV2 *TorchGatherPluginDynamicCreator::deserializePlugin(
-    const char *name, const void *serialData, size_t serialLength) {
+    const char *name, const void *serialData,
+    size_t serialLength) PLUGIN_NOEXCEPT {
   // This object will be deleted when the network is destroyed, which will
   // call FCPluginDynamic::destroy()
   auto plugin = new TorchGatherPluginDynamic(name, serialData, serialLength);
   plugin->setPluginNamespace(getPluginNamespace());
   return plugin;
 }
-
-void TorchGatherPluginDynamicCreator::setPluginNamespace(
-    const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *TorchGatherPluginDynamicCreator::getPluginNamespace() const {
-  return mNamespace.c_str();
-}
-
 }  // namespace plugin
 }  // namespace amirstan

@@ -1,5 +1,5 @@
 
-#include "plugin/groupNormPlugin/groupNormPlugin.h"
+#include "groupNormPlugin.h"
 
 #include <assert.h>
 
@@ -19,22 +19,19 @@ static const char *PLUGIN_VERSION{"1"};
 static const char *PLUGIN_NAME{"GroupNormPluginDynamic"};
 }  // namespace
 
-PluginFieldCollection GroupNormPluginDynamicCreator::mFC{};
-std::vector<PluginField> GroupNormPluginDynamicCreator::mPluginAttributes(
-    {PluginField("num_groups"), PluginField("eps")});
-
 GroupNormPluginDynamic::GroupNormPluginDynamic(const std::string &name,
                                                int num_groups, float eps)
-    : mLayerName(name), mNumGroups(num_groups), mEps(eps) {}
+    : PluginDynamicBase(name), mNumGroups(num_groups), mEps(eps) {}
 
 GroupNormPluginDynamic::GroupNormPluginDynamic(const std::string name,
                                                const void *data, size_t length)
-    : mLayerName(name) {
+    : PluginDynamicBase(name) {
   deserialize_value(&data, &length, &mNumGroups);
   deserialize_value(&data, &length, &mEps);
 }
 
-nvinfer1::IPluginV2DynamicExt *GroupNormPluginDynamic::clone() const {
+nvinfer1::IPluginV2DynamicExt *GroupNormPluginDynamic::clone() const
+    PLUGIN_NOEXCEPT {
   GroupNormPluginDynamic *plugin =
       new GroupNormPluginDynamic(mLayerName, mNumGroups, mEps);
   plugin->setPluginNamespace(getPluginNamespace());
@@ -44,13 +41,13 @@ nvinfer1::IPluginV2DynamicExt *GroupNormPluginDynamic::clone() const {
 
 nvinfer1::DimsExprs GroupNormPluginDynamic::getOutputDimensions(
     int outputIndex, const nvinfer1::DimsExprs *inputs, int nbInputs,
-    nvinfer1::IExprBuilder &exprBuilder) {
+    nvinfer1::IExprBuilder &exprBuilder) PLUGIN_NOEXCEPT {
   return inputs[0];
 }
 
 bool GroupNormPluginDynamic::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs,
-    int nbOutputs) {
+    int nbOutputs) PLUGIN_NOEXCEPT {
   if (pos == 0) {
     return (inOut[0].type == nvinfer1::DataType::kFLOAT &&
             inOut[0].format == nvinfer1::TensorFormat::kLINEAR);
@@ -64,13 +61,15 @@ bool GroupNormPluginDynamic::supportsFormatCombination(
 
 void GroupNormPluginDynamic::configurePlugin(
     const nvinfer1::DynamicPluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::DynamicPluginTensorDesc *outputs, int nbOutputs) {
+    const nvinfer1::DynamicPluginTensorDesc *outputs,
+    int nbOutputs) PLUGIN_NOEXCEPT {
   // Validate input arguments
 }
 
 size_t GroupNormPluginDynamic::getWorkspaceSize(
     const nvinfer1::PluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::PluginTensorDesc *outputs, int nbOutputs) const {
+    const nvinfer1::PluginTensorDesc *outputs,
+    int nbOutputs) const PLUGIN_NOEXCEPT {
   size_t wordSize = samplesCommon::getElementSize(inputs[0].type);
   int batch_size = inputs[0].dims.d[0];
   int channel_size = inputs[0].dims.d[1];
@@ -89,7 +88,8 @@ size_t GroupNormPluginDynamic::getWorkspaceSize(
 int GroupNormPluginDynamic::enqueue(
     const nvinfer1::PluginTensorDesc *inputDesc,
     const nvinfer1::PluginTensorDesc *outputDesc, const void *const *inputs,
-    void *const *outputs, void *workSpace, cudaStream_t stream) {
+    void *const *outputs, void *workSpace,
+    cudaStream_t stream) PLUGIN_NOEXCEPT {
   int batch_size = inputDesc[0].dims.d[0];
   int inputChannel = inputDesc[0].dims.d[1];
   int inputHeight = inputDesc[0].dims.d[2];
@@ -113,68 +113,51 @@ int GroupNormPluginDynamic::enqueue(
 }
 
 nvinfer1::DataType GroupNormPluginDynamic::getOutputDataType(
-    int index, const nvinfer1::DataType *inputTypes, int nbInputs) const {
+    int index, const nvinfer1::DataType *inputTypes,
+    int nbInputs) const PLUGIN_NOEXCEPT {
   return inputTypes[0];
 }
 
 // IPluginV2 Methods
-const char *GroupNormPluginDynamic::getPluginType() const {
+const char *GroupNormPluginDynamic::getPluginType() const PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *GroupNormPluginDynamic::getPluginVersion() const {
+const char *GroupNormPluginDynamic::getPluginVersion() const PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-int GroupNormPluginDynamic::getNbOutputs() const { return 1; }
+int GroupNormPluginDynamic::getNbOutputs() const PLUGIN_NOEXCEPT { return 1; }
 
-int GroupNormPluginDynamic::initialize() { return 0; }
-
-void GroupNormPluginDynamic::terminate() {}
-
-size_t GroupNormPluginDynamic::getSerializationSize() const {
+size_t GroupNormPluginDynamic::getSerializationSize() const PLUGIN_NOEXCEPT {
   return sizeof(mNumGroups) + sizeof(mEps);
 }
 
-void GroupNormPluginDynamic::serialize(void *buffer) const {
+void GroupNormPluginDynamic::serialize(void *buffer) const PLUGIN_NOEXCEPT {
   serialize_value(&buffer, mNumGroups);
   serialize_value(&buffer, mEps);
-}
-
-void GroupNormPluginDynamic::destroy() {
-  // This gets called when the network containing plugin is destroyed
-  delete this;
-}
-
-void GroupNormPluginDynamic::setPluginNamespace(const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *GroupNormPluginDynamic::getPluginNamespace() const {
-  return mNamespace.c_str();
 }
 
 ////////////////////// creator /////////////////////////////
 
 GroupNormPluginDynamicCreator::GroupNormPluginDynamicCreator() {
+  mPluginAttributes = {PluginField("num_groups"), PluginField("eps")};
   mFC.nbFields = mPluginAttributes.size();
   mFC.fields = mPluginAttributes.data();
 }
 
-const char *GroupNormPluginDynamicCreator::getPluginName() const {
+const char *GroupNormPluginDynamicCreator::getPluginName() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *GroupNormPluginDynamicCreator::getPluginVersion() const {
+const char *GroupNormPluginDynamicCreator::getPluginVersion() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-const PluginFieldCollection *GroupNormPluginDynamicCreator::getFieldNames() {
-  return &mFC;
-}
-
 IPluginV2 *GroupNormPluginDynamicCreator::createPlugin(
-    const char *name, const PluginFieldCollection *fc) {
+    const char *name, const PluginFieldCollection *fc) PLUGIN_NOEXCEPT {
   int num_groups = 0;
   float eps = 1e-5;
 
@@ -200,21 +183,13 @@ IPluginV2 *GroupNormPluginDynamicCreator::createPlugin(
 }
 
 IPluginV2 *GroupNormPluginDynamicCreator::deserializePlugin(
-    const char *name, const void *serialData, size_t serialLength) {
+    const char *name, const void *serialData,
+    size_t serialLength) PLUGIN_NOEXCEPT {
   // This object will be deleted when the network is destroyed, which will
   // call FCPluginDynamic::destroy()
   auto plugin = new GroupNormPluginDynamic(name, serialData, serialLength);
   plugin->setPluginNamespace(getPluginNamespace());
   return plugin;
-}
-
-void GroupNormPluginDynamicCreator::setPluginNamespace(
-    const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *GroupNormPluginDynamicCreator::getPluginNamespace() const {
-  return mNamespace.c_str();
 }
 
 }  // namespace plugin

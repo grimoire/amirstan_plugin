@@ -1,5 +1,5 @@
 
-#include "plugin/delta2bboxPlugin/delta2bboxPlugin.h"
+#include "delta2bboxPlugin.h"
 
 #include <assert.h>
 
@@ -18,16 +18,10 @@ static const char *PLUGIN_VERSION{"1"};
 static const char *PLUGIN_NAME{"Delta2BBoxPluginDynamic"};
 }  // namespace
 
-PluginFieldCollection Delta2BBoxPluginDynamicCreator::mFC{};
-std::vector<PluginField> Delta2BBoxPluginDynamicCreator::mPluginAttributes(
-    {PluginField("use_sigmoid_cls"), PluginField("min_num_bbox"),
-     PluginField("num_classes"), PluginField("target_means"),
-     PluginField("target_stds")});
-
 Delta2BBoxPluginDynamic::Delta2BBoxPluginDynamic(
     const std::string &name, bool useSigmoidCls, int minNumBBox, int numClasses,
     const std::vector<float> &targetMeans, const std::vector<float> &targetStds)
-    : mLayerName(name),
+    : PluginDynamicBase(name),
       mUseSigmoidCls(useSigmoidCls),
       mMinNumBBox(minNumBBox),
       mNumClasses(numClasses),
@@ -37,7 +31,7 @@ Delta2BBoxPluginDynamic::Delta2BBoxPluginDynamic(
 Delta2BBoxPluginDynamic::Delta2BBoxPluginDynamic(const std::string name,
                                                  const void *data,
                                                  size_t length)
-    : mLayerName(name) {
+    : PluginDynamicBase(name) {
   deserialize_value(&data, &length, &mUseSigmoidCls);
   deserialize_value(&data, &length, &mMinNumBBox);
   deserialize_value(&data, &length, &mNumClasses);
@@ -56,7 +50,8 @@ Delta2BBoxPluginDynamic::Delta2BBoxPluginDynamic(const std::string name,
   initialize();
 }
 
-nvinfer1::IPluginV2DynamicExt *Delta2BBoxPluginDynamic::clone() const {
+nvinfer1::IPluginV2DynamicExt *Delta2BBoxPluginDynamic::clone() const
+    PLUGIN_NOEXCEPT {
   Delta2BBoxPluginDynamic *plugin =
       new Delta2BBoxPluginDynamic(mLayerName, mUseSigmoidCls, mMinNumBBox,
                                   mNumClasses, mTargetMeans, mTargetStds);
@@ -67,7 +62,7 @@ nvinfer1::IPluginV2DynamicExt *Delta2BBoxPluginDynamic::clone() const {
 
 nvinfer1::DimsExprs Delta2BBoxPluginDynamic::getOutputDimensions(
     int outputIndex, const nvinfer1::DimsExprs *inputs, int nbInputs,
-    nvinfer1::IExprBuilder &exprBuilder) {
+    nvinfer1::IExprBuilder &exprBuilder) PLUGIN_NOEXCEPT {
   assert(nbInputs == 3 || nbInputs == 4);
 
   auto out_bbox = exprBuilder.operation(
@@ -98,7 +93,7 @@ nvinfer1::DimsExprs Delta2BBoxPluginDynamic::getOutputDimensions(
 
 bool Delta2BBoxPluginDynamic::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs,
-    int nbOutputs) {
+    int nbOutputs) PLUGIN_NOEXCEPT {
   const auto *in = inOut;
   const auto *out = inOut + nbInputs;
   switch (pos) {
@@ -129,20 +124,23 @@ bool Delta2BBoxPluginDynamic::supportsFormatCombination(
 
 void Delta2BBoxPluginDynamic::configurePlugin(
     const nvinfer1::DynamicPluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::DynamicPluginTensorDesc *outputs, int nbOutputs) {
+    const nvinfer1::DynamicPluginTensorDesc *outputs,
+    int nbOutputs) PLUGIN_NOEXCEPT {
   // Validate input arguments
 }
 
 size_t Delta2BBoxPluginDynamic::getWorkspaceSize(
     const nvinfer1::PluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::PluginTensorDesc *outputs, int nbOutputs) const {
+    const nvinfer1::PluginTensorDesc *outputs,
+    int nbOutputs) const PLUGIN_NOEXCEPT {
   return 0;
 }
 
 int Delta2BBoxPluginDynamic::enqueue(
     const nvinfer1::PluginTensorDesc *inputDesc,
     const nvinfer1::PluginTensorDesc *outputDesc, const void *const *inputs,
-    void *const *outputs, void *workSpace, cudaStream_t stream) {
+    void *const *outputs, void *workSpace,
+    cudaStream_t stream) PLUGIN_NOEXCEPT {
   int batch_size = inputDesc[0].dims.d[0];
   int num_inboxes = inputDesc[0].dims.d[2] * inputDesc[0].dims.d[3];
   int num_ratios = inputDesc[0].dims.d[1] / mNumClasses;
@@ -176,32 +174,29 @@ int Delta2BBoxPluginDynamic::enqueue(
 }
 
 nvinfer1::DataType Delta2BBoxPluginDynamic::getOutputDataType(
-    int index, const nvinfer1::DataType *inputTypes, int nbInputs) const {
+    int index, const nvinfer1::DataType *inputTypes,
+    int nbInputs) const PLUGIN_NOEXCEPT {
   return nvinfer1::DataType::kFLOAT;
 }
 
 // IPluginV2 Methods
-const char *Delta2BBoxPluginDynamic::getPluginType() const {
+const char *Delta2BBoxPluginDynamic::getPluginType() const PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *Delta2BBoxPluginDynamic::getPluginVersion() const {
+const char *Delta2BBoxPluginDynamic::getPluginVersion() const PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-int Delta2BBoxPluginDynamic::getNbOutputs() const { return 2; }
+int Delta2BBoxPluginDynamic::getNbOutputs() const PLUGIN_NOEXCEPT { return 2; }
 
-int Delta2BBoxPluginDynamic::initialize() { return 0; }
-
-void Delta2BBoxPluginDynamic::terminate() {}
-
-size_t Delta2BBoxPluginDynamic::getSerializationSize() const {
+size_t Delta2BBoxPluginDynamic::getSerializationSize() const PLUGIN_NOEXCEPT {
   return mTargetMeans.size() * sizeof(float) +
          mTargetStds.size() * sizeof(float) + sizeof(mUseSigmoidCls) +
          sizeof(mMinNumBBox) + sizeof(mNumClasses);
 }
 
-void Delta2BBoxPluginDynamic::serialize(void *buffer) const {
+void Delta2BBoxPluginDynamic::serialize(void *buffer) const PLUGIN_NOEXCEPT {
   serialize_value(&buffer, mUseSigmoidCls);
   serialize_value(&buffer, mMinNumBBox);
   serialize_value(&buffer, mNumClasses);
@@ -213,40 +208,30 @@ void Delta2BBoxPluginDynamic::serialize(void *buffer) const {
   serFromHost(d, mTargetStds.data(), mean_std_size);
 }
 
-void Delta2BBoxPluginDynamic::destroy() {
-  // This gets called when the network containing plugin is destroyed
-  delete this;
-}
-
-void Delta2BBoxPluginDynamic::setPluginNamespace(const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *Delta2BBoxPluginDynamic::getPluginNamespace() const {
-  return mNamespace.c_str();
-}
-
 ////////////////////// creator /////////////////////////////
 
 Delta2BBoxPluginDynamicCreator::Delta2BBoxPluginDynamicCreator() {
+  mPluginAttributes = std::vector<PluginField>(
+      {PluginField("use_sigmoid_cls"), PluginField("min_num_bbox"),
+       PluginField("num_classes"), PluginField("target_means"),
+       PluginField("target_stds")});
+
   mFC.nbFields = mPluginAttributes.size();
   mFC.fields = mPluginAttributes.data();
 }
 
-const char *Delta2BBoxPluginDynamicCreator::getPluginName() const {
+const char *Delta2BBoxPluginDynamicCreator::getPluginName() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *Delta2BBoxPluginDynamicCreator::getPluginVersion() const {
+const char *Delta2BBoxPluginDynamicCreator::getPluginVersion() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-const PluginFieldCollection *Delta2BBoxPluginDynamicCreator::getFieldNames() {
-  return &mFC;
-}
-
 IPluginV2 *Delta2BBoxPluginDynamicCreator::createPlugin(
-    const char *name, const PluginFieldCollection *fc) {
+    const char *name, const PluginFieldCollection *fc) PLUGIN_NOEXCEPT {
   bool useSigmoidCls = true;
   int minNumBBox = 1000;
   int numClasses = 1;
@@ -285,11 +270,11 @@ IPluginV2 *Delta2BBoxPluginDynamicCreator::createPlugin(
   }
 
   if (targetMeans.size() != 4) {
-    gLogError << "target mean must contain 4 elements" << std::endl;
+    std::cerr << "target mean must contain 4 elements" << std::endl;
   }
 
   if (targetStds.size() != 4) {
-    gLogError << "target std must contain 4 elements" << std::endl;
+    std::cerr << "target std must contain 4 elements" << std::endl;
   }
 
   Delta2BBoxPluginDynamic *plugin = new Delta2BBoxPluginDynamic(
@@ -299,21 +284,13 @@ IPluginV2 *Delta2BBoxPluginDynamicCreator::createPlugin(
 }
 
 IPluginV2 *Delta2BBoxPluginDynamicCreator::deserializePlugin(
-    const char *name, const void *serialData, size_t serialLength) {
+    const char *name, const void *serialData,
+    size_t serialLength) PLUGIN_NOEXCEPT {
   // This object will be deleted when the network is destroyed, which will
   // call FCPluginDynamic::destroy()
   auto plugin = new Delta2BBoxPluginDynamic(name, serialData, serialLength);
   plugin->setPluginNamespace(getPluginNamespace());
   return plugin;
-}
-
-void Delta2BBoxPluginDynamicCreator::setPluginNamespace(
-    const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *Delta2BBoxPluginDynamicCreator::getPluginNamespace() const {
-  return mNamespace.c_str();
 }
 
 }  // namespace plugin

@@ -8,32 +8,27 @@ set(TARGET_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(common)
 
-set(PLUGIN_LIST deformableConvPlugin
-                groupNormPlugin
-                repeatDimsPlugin
-                exViewPlugin
-                layerNormPlugin
-                gridAnchorDynamicPlugin
-                roiExtractorPlugin
-                delta2bboxPlugin
+set(PLUGIN_LIST adaptivePoolPlugin
                 batchedNMSPlugin
-                torchGatherPlugin
-                deformablePoolPlugin
-                adaptivePoolPlugin
-                meshGridPlugin
                 carafeFeatureReassemblePlugin
+                deformableConvPlugin
+                deformablePoolPlugin
+                delta2bboxPlugin
+                gridAnchorDynamicPlugin
                 gridSamplePlugin
-                torchFlipPlugin
+                groupNormPlugin
+                meshGridPlugin
+                roiExtractorPlugin
+                roiPoolPlugin
+                torchBmmPlugin
                 torchCumMaxMinPlugin
                 torchCumPlugin
-                torchNMSPlugin
-                roiPoolPlugin
                 torchEmbeddingPlugin
-                torchBmmPlugin
+                torchGatherPlugin
+                torchNMSPlugin
                 )
 
-set(INFER_PLUGIN_SRC InferPlugin.cpp
-                    common/logger.cpp)
+set(INFER_PLUGIN_SRC InferPlugin.cpp)
 
 set(INFER_PLUGIN_LIB ${TENSORRT_LIBRARY})
 

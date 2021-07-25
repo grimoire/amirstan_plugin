@@ -1,5 +1,5 @@
 
-#include "plugin/roiPoolPlugin/roiPoolPlugin.h"
+#include "roiPoolPlugin.h"
 
 #include <assert.h>
 
@@ -18,16 +18,11 @@ static const char *PLUGIN_VERSION{"1"};
 static const char *PLUGIN_NAME{"RoiPoolPluginDynamic"};
 }  // namespace
 
-PluginFieldCollection RoiPoolPluginDynamicCreator::mFC{};
-std::vector<PluginField> RoiPoolPluginDynamicCreator::mPluginAttributes(
-    {PluginField("out_size"), PluginField("featmap_strides"),
-     PluginField("roi_scale_factor"), PluginField("finest_scale")});
-
 RoiPoolPluginDynamic::RoiPoolPluginDynamic(
     const std::string &name, int outSize,
     const std::vector<float> &featmapStrides, float roiScaleFactor,
     int finestScale)
-    : mLayerName(name),
+    : PluginDynamicBase(name),
       mOutSize(outSize),
       mFeatmapStrides(featmapStrides),
       mRoiScaleFactor(roiScaleFactor),
@@ -35,7 +30,7 @@ RoiPoolPluginDynamic::RoiPoolPluginDynamic(
 
 RoiPoolPluginDynamic::RoiPoolPluginDynamic(const std::string name,
                                            const void *data, size_t length)
-    : mLayerName(name) {
+    : PluginDynamicBase(name) {
   deserialize_value(&data, &length, &mOutSize);
   deserialize_value(&data, &length, &mRoiScaleFactor);
   deserialize_value(&data, &length, &mFinestScale);
@@ -52,7 +47,8 @@ RoiPoolPluginDynamic::RoiPoolPluginDynamic(const std::string name,
   initialize();
 }
 
-nvinfer1::IPluginV2DynamicExt *RoiPoolPluginDynamic::clone() const {
+nvinfer1::IPluginV2DynamicExt *RoiPoolPluginDynamic::clone() const
+    PLUGIN_NOEXCEPT {
   RoiPoolPluginDynamic *plugin = new RoiPoolPluginDynamic(
       mLayerName, mOutSize, mFeatmapStrides, mRoiScaleFactor, mFinestScale);
   plugin->setPluginNamespace(getPluginNamespace());
@@ -62,7 +58,7 @@ nvinfer1::IPluginV2DynamicExt *RoiPoolPluginDynamic::clone() const {
 
 nvinfer1::DimsExprs RoiPoolPluginDynamic::getOutputDimensions(
     int outputIndex, const nvinfer1::DimsExprs *inputs, int nbInputs,
-    nvinfer1::IExprBuilder &exprBuilder) {
+    nvinfer1::IExprBuilder &exprBuilder) PLUGIN_NOEXCEPT {
   assert(nbInputs == mFeatmapStrides.size() + 1);
 
   nvinfer1::DimsExprs ret;
@@ -77,7 +73,7 @@ nvinfer1::DimsExprs RoiPoolPluginDynamic::getOutputDimensions(
 
 bool RoiPoolPluginDynamic::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs,
-    int nbOutputs) {
+    int nbOutputs) PLUGIN_NOEXCEPT {
   // assert(0 <= pos && pos < 2);
   const auto *in = inOut;
   const auto *out = inOut + nbInputs;
@@ -87,7 +83,8 @@ bool RoiPoolPluginDynamic::supportsFormatCombination(
 
 void RoiPoolPluginDynamic::configurePlugin(
     const nvinfer1::DynamicPluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::DynamicPluginTensorDesc *outputs, int nbOutputs) {
+    const nvinfer1::DynamicPluginTensorDesc *outputs,
+    int nbOutputs) PLUGIN_NOEXCEPT {
   // Validate input arguments
   // assert(nbOutputs == 1);
   assert(nbInputs == mFeatmapStrides.size() + 1);
@@ -95,7 +92,8 @@ void RoiPoolPluginDynamic::configurePlugin(
 
 size_t RoiPoolPluginDynamic::getWorkspaceSize(
     const nvinfer1::PluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::PluginTensorDesc *outputs, int nbOutputs) const {
+    const nvinfer1::PluginTensorDesc *outputs,
+    int nbOutputs) const PLUGIN_NOEXCEPT {
   return 0;
 }
 
@@ -103,7 +101,7 @@ int RoiPoolPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc,
                                   const nvinfer1::PluginTensorDesc *outputDesc,
                                   const void *const *inputs,
                                   void *const *outputs, void *workSpace,
-                                  cudaStream_t stream) {
+                                  cudaStream_t stream) PLUGIN_NOEXCEPT {
   int num_rois = inputDesc[0].dims.d[0];
   int batch_size = inputDesc[1].dims.d[0];
   int channels = inputDesc[1].dims.d[1];
@@ -131,29 +129,28 @@ int RoiPoolPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc,
 }
 
 nvinfer1::DataType RoiPoolPluginDynamic::getOutputDataType(
-    int index, const nvinfer1::DataType *inputTypes, int nbInputs) const {
+    int index, const nvinfer1::DataType *inputTypes,
+    int nbInputs) const PLUGIN_NOEXCEPT {
   return nvinfer1::DataType::kFLOAT;
 }
 
 // IPluginV2 Methods
-const char *RoiPoolPluginDynamic::getPluginType() const { return PLUGIN_NAME; }
+const char *RoiPoolPluginDynamic::getPluginType() const PLUGIN_NOEXCEPT {
+  return PLUGIN_NAME;
+}
 
-const char *RoiPoolPluginDynamic::getPluginVersion() const {
+const char *RoiPoolPluginDynamic::getPluginVersion() const PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-int RoiPoolPluginDynamic::getNbOutputs() const { return 1; }
+int RoiPoolPluginDynamic::getNbOutputs() const PLUGIN_NOEXCEPT { return 1; }
 
-int RoiPoolPluginDynamic::initialize() { return 0; }
-
-void RoiPoolPluginDynamic::terminate() {}
-
-size_t RoiPoolPluginDynamic::getSerializationSize() const {
+size_t RoiPoolPluginDynamic::getSerializationSize() const PLUGIN_NOEXCEPT {
   return mFeatmapStrides.size() * sizeof(float) + sizeof(mOutSize) +
          sizeof(mRoiScaleFactor) + sizeof(mFinestScale) + sizeof(int);
 }
 
-void RoiPoolPluginDynamic::serialize(void *buffer) const {
+void RoiPoolPluginDynamic::serialize(void *buffer) const PLUGIN_NOEXCEPT {
   serialize_value(&buffer, mOutSize);
   serialize_value(&buffer, mRoiScaleFactor);
   serialize_value(&buffer, mFinestScale);
@@ -165,40 +162,27 @@ void RoiPoolPluginDynamic::serialize(void *buffer) const {
   serFromHost(d, mFeatmapStrides.data(), strides_size);
 }
 
-void RoiPoolPluginDynamic::destroy() {
-  // This gets called when the network containing plugin is destroyed
-  delete this;
-}
-
-void RoiPoolPluginDynamic::setPluginNamespace(const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *RoiPoolPluginDynamic::getPluginNamespace() const {
-  return mNamespace.c_str();
-}
-
 ////////////////////// creator /////////////////////////////
 
 RoiPoolPluginDynamicCreator::RoiPoolPluginDynamicCreator() {
+  mPluginAttributes = std::vector<PluginField>(
+      {PluginField("out_size"), PluginField("featmap_strides"),
+       PluginField("roi_scale_factor"), PluginField("finest_scale")});
   mFC.nbFields = mPluginAttributes.size();
   mFC.fields = mPluginAttributes.data();
 }
 
-const char *RoiPoolPluginDynamicCreator::getPluginName() const {
+const char *RoiPoolPluginDynamicCreator::getPluginName() const PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *RoiPoolPluginDynamicCreator::getPluginVersion() const {
+const char *RoiPoolPluginDynamicCreator::getPluginVersion() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-const PluginFieldCollection *RoiPoolPluginDynamicCreator::getFieldNames() {
-  return &mFC;
-}
-
 IPluginV2 *RoiPoolPluginDynamicCreator::createPlugin(
-    const char *name, const PluginFieldCollection *fc) {
+    const char *name, const PluginFieldCollection *fc) PLUGIN_NOEXCEPT {
   int outSize = 7;
   std::vector<float> featmapStrides;
   float roiScaleFactor = -1;
@@ -230,7 +214,7 @@ IPluginV2 *RoiPoolPluginDynamicCreator::createPlugin(
   }
 
   if (featmapStrides.size() == 0) {
-    gLogError << "featmap_strides is zero" << std::endl;
+    std::cerr << "featmap_strides is zero" << std::endl;
   }
 
   RoiPoolPluginDynamic *plugin = new RoiPoolPluginDynamic(
@@ -240,20 +224,13 @@ IPluginV2 *RoiPoolPluginDynamicCreator::createPlugin(
 }
 
 IPluginV2 *RoiPoolPluginDynamicCreator::deserializePlugin(
-    const char *name, const void *serialData, size_t serialLength) {
+    const char *name, const void *serialData,
+    size_t serialLength) PLUGIN_NOEXCEPT {
   // This object will be deleted when the network is destroyed, which will
   // call FCPluginDynamic::destroy()
   auto plugin = new RoiPoolPluginDynamic(name, serialData, serialLength);
   plugin->setPluginNamespace(getPluginNamespace());
   return plugin;
-}
-
-void RoiPoolPluginDynamicCreator::setPluginNamespace(const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *RoiPoolPluginDynamicCreator::getPluginNamespace() const {
-  return mNamespace.c_str();
 }
 
 }  // namespace plugin

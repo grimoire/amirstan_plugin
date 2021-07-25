@@ -1,5 +1,5 @@
 
-#include "plugin/deformablePoolPlugin/deformablePoolPlugin.h"
+#include "deformablePoolPlugin.h"
 
 #include <assert.h>
 
@@ -18,15 +18,10 @@ static const char *PLUGIN_VERSION{"1"};
 static const char *PLUGIN_NAME{"DeformablePoolPluginDynamic"};
 }  // namespace
 
-PluginFieldCollection DeformablePoolPluginDynamicCreator::mFC{};
-std::vector<PluginField> DeformablePoolPluginDynamicCreator::mPluginAttributes(
-    {PluginField("out_size"), PluginField("spatial_scale"),
-     PluginField("sampling_ratio"), PluginField("gamma")});
-
 DeformablePoolPluginDynamic::DeformablePoolPluginDynamic(
     const std::string &name, const nvinfer1::Dims &outSize, float spatialScale,
     int samplingRatio, float gamma)
-    : mLayerName(name),
+    : PluginDynamicBase(name),
       mOutSize(outSize),
       mSpatialScale(spatialScale),
       mSamplingRatio(samplingRatio),
@@ -35,14 +30,15 @@ DeformablePoolPluginDynamic::DeformablePoolPluginDynamic(
 DeformablePoolPluginDynamic::DeformablePoolPluginDynamic(const std::string name,
                                                          const void *data,
                                                          size_t length)
-    : mLayerName(name) {
+    : PluginDynamicBase(name) {
   deserialize_value(&data, &length, &mOutSize);
   deserialize_value(&data, &length, &mSpatialScale);
   deserialize_value(&data, &length, &mSamplingRatio);
   deserialize_value(&data, &length, &mGamma);
 }
 
-nvinfer1::IPluginV2DynamicExt *DeformablePoolPluginDynamic::clone() const {
+nvinfer1::IPluginV2DynamicExt *DeformablePoolPluginDynamic::clone() const
+    PLUGIN_NOEXCEPT {
   DeformablePoolPluginDynamic *plugin = new DeformablePoolPluginDynamic(
       mLayerName, mOutSize, mSpatialScale, mSamplingRatio, mGamma);
   plugin->setPluginNamespace(getPluginNamespace());
@@ -52,7 +48,7 @@ nvinfer1::IPluginV2DynamicExt *DeformablePoolPluginDynamic::clone() const {
 
 nvinfer1::DimsExprs DeformablePoolPluginDynamic::getOutputDimensions(
     int outputIndex, const nvinfer1::DimsExprs *inputs, int nbInputs,
-    nvinfer1::IExprBuilder &exprBuilder) {
+    nvinfer1::IExprBuilder &exprBuilder) PLUGIN_NOEXCEPT {
   assert(nbInputs == 2 || nbInputs == 3);
 
   nvinfer1::DimsExprs ret;
@@ -67,7 +63,7 @@ nvinfer1::DimsExprs DeformablePoolPluginDynamic::getOutputDimensions(
 
 bool DeformablePoolPluginDynamic::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs,
-    int nbOutputs) {
+    int nbOutputs) PLUGIN_NOEXCEPT {
   // assert(0 <= pos && pos < 2);
   const auto *in = inOut;
   const auto *out = inOut + nbInputs;
@@ -77,7 +73,8 @@ bool DeformablePoolPluginDynamic::supportsFormatCombination(
 
 void DeformablePoolPluginDynamic::configurePlugin(
     const nvinfer1::DynamicPluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::DynamicPluginTensorDesc *outputs, int nbOutputs) {
+    const nvinfer1::DynamicPluginTensorDesc *outputs,
+    int nbOutputs) PLUGIN_NOEXCEPT {
   // Validate input arguments
   assert(nbOutputs == 1);
   assert(nbInputs == 2 || nbInputs == 3);
@@ -85,14 +82,16 @@ void DeformablePoolPluginDynamic::configurePlugin(
 
 size_t DeformablePoolPluginDynamic::getWorkspaceSize(
     const nvinfer1::PluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::PluginTensorDesc *outputs, int nbOutputs) const {
+    const nvinfer1::PluginTensorDesc *outputs,
+    int nbOutputs) const PLUGIN_NOEXCEPT {
   return 0;
 }
 
 int DeformablePoolPluginDynamic::enqueue(
     const nvinfer1::PluginTensorDesc *inputDesc,
     const nvinfer1::PluginTensorDesc *outputDesc, const void *const *inputs,
-    void *const *outputs, void *workSpace, cudaStream_t stream) {
+    void *const *outputs, void *workSpace,
+    cudaStream_t stream) PLUGIN_NOEXCEPT {
   int channels = inputDesc[0].dims.d[1];
   int height = inputDesc[0].dims.d[2];
   int width = inputDesc[0].dims.d[3];
@@ -123,72 +122,61 @@ int DeformablePoolPluginDynamic::enqueue(
 }
 
 nvinfer1::DataType DeformablePoolPluginDynamic::getOutputDataType(
-    int index, const nvinfer1::DataType *inputTypes, int nbInputs) const {
+    int index, const nvinfer1::DataType *inputTypes,
+    int nbInputs) const PLUGIN_NOEXCEPT {
   return nvinfer1::DataType::kFLOAT;
 }
 
 // IPluginV2 Methods
-const char *DeformablePoolPluginDynamic::getPluginType() const {
+const char *DeformablePoolPluginDynamic::getPluginType() const PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *DeformablePoolPluginDynamic::getPluginVersion() const {
+const char *DeformablePoolPluginDynamic::getPluginVersion() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-int DeformablePoolPluginDynamic::getNbOutputs() const { return 1; }
+int DeformablePoolPluginDynamic::getNbOutputs() const PLUGIN_NOEXCEPT {
+  return 1;
+}
 
-int DeformablePoolPluginDynamic::initialize() { return 0; }
-
-void DeformablePoolPluginDynamic::terminate() {}
-
-size_t DeformablePoolPluginDynamic::getSerializationSize() const {
+size_t DeformablePoolPluginDynamic::getSerializationSize() const
+    PLUGIN_NOEXCEPT {
   return sizeof(mOutSize) + sizeof(mSpatialScale) + sizeof(mSamplingRatio) +
          sizeof(mGamma);
 }
 
-void DeformablePoolPluginDynamic::serialize(void *buffer) const {
+void DeformablePoolPluginDynamic::serialize(void *buffer) const
+    PLUGIN_NOEXCEPT {
   serialize_value(&buffer, mOutSize);
   serialize_value(&buffer, mSpatialScale);
   serialize_value(&buffer, mSamplingRatio);
   serialize_value(&buffer, mGamma);
 }
 
-void DeformablePoolPluginDynamic::destroy() {
-  // This gets called when the network containing plugin is destroyed
-  delete this;
-}
-
-void DeformablePoolPluginDynamic::setPluginNamespace(const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *DeformablePoolPluginDynamic::getPluginNamespace() const {
-  return mNamespace.c_str();
-}
-
 ////////////////////// creator /////////////////////////////
 
 DeformablePoolPluginDynamicCreator::DeformablePoolPluginDynamicCreator() {
+  mPluginAttributes = std::vector<PluginField>(
+      {PluginField("out_size"), PluginField("spatial_scale"),
+       PluginField("sampling_ratio"), PluginField("gamma")});
   mFC.nbFields = mPluginAttributes.size();
   mFC.fields = mPluginAttributes.data();
 }
 
-const char *DeformablePoolPluginDynamicCreator::getPluginName() const {
+const char *DeformablePoolPluginDynamicCreator::getPluginName() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *DeformablePoolPluginDynamicCreator::getPluginVersion() const {
+const char *DeformablePoolPluginDynamicCreator::getPluginVersion() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-const PluginFieldCollection *
-DeformablePoolPluginDynamicCreator::getFieldNames() {
-  return &mFC;
-}
-
 IPluginV2 *DeformablePoolPluginDynamicCreator::createPlugin(
-    const char *name, const PluginFieldCollection *fc) {
+    const char *name, const PluginFieldCollection *fc) PLUGIN_NOEXCEPT {
   nvinfer1::Dims outSize = {2, {7, 7}};
   float spatialScale = 1.;
   int samplingRatio = 0.;
@@ -226,21 +214,13 @@ IPluginV2 *DeformablePoolPluginDynamicCreator::createPlugin(
 }
 
 IPluginV2 *DeformablePoolPluginDynamicCreator::deserializePlugin(
-    const char *name, const void *serialData, size_t serialLength) {
+    const char *name, const void *serialData,
+    size_t serialLength) PLUGIN_NOEXCEPT {
   // This object will be deleted when the network is destroyed, which will
   // call FCPluginDynamic::destroy()
   auto plugin = new DeformablePoolPluginDynamic(name, serialData, serialLength);
   plugin->setPluginNamespace(getPluginNamespace());
   return plugin;
-}
-
-void DeformablePoolPluginDynamicCreator::setPluginNamespace(
-    const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *DeformablePoolPluginDynamicCreator::getPluginNamespace() const {
-  return mNamespace.c_str();
 }
 
 }  // namespace plugin

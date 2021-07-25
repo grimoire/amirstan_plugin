@@ -1,4 +1,4 @@
-#include "plugin/torchEmbeddingPlugin/torchEmbeddingPlugin.h"
+#include "torchEmbeddingPlugin.h"
 
 #include <assert.h>
 
@@ -18,25 +18,22 @@ static const char *PLUGIN_VERSION{"1"};
 static const char *PLUGIN_NAME{"TorchEmbeddingPluginDynamic"};
 }  // namespace
 
-PluginFieldCollection TorchEmbeddingPluginDynamicCreator::mFC{};
-std::vector<PluginField> TorchEmbeddingPluginDynamicCreator::mPluginAttributes(
-    {PluginField("num_embeddings"), PluginField("embedding_dim")});
-
 TorchEmbeddingPluginDynamic::TorchEmbeddingPluginDynamic(
     const std::string &name, int numEmbeddings, int embeddingDim)
-    : mLayerName(name),
+    : PluginDynamicBase(name),
       mNumEmbeddings(numEmbeddings),
       mEmbeddingDim(embeddingDim) {}
 
 TorchEmbeddingPluginDynamic::TorchEmbeddingPluginDynamic(const std::string name,
                                                          const void *data,
                                                          size_t length)
-    : mLayerName(name) {
+    : PluginDynamicBase(name) {
   deserialize_value(&data, &length, &mNumEmbeddings);
   deserialize_value(&data, &length, &mEmbeddingDim);
 }
 
-nvinfer1::IPluginV2DynamicExt *TorchEmbeddingPluginDynamic::clone() const {
+nvinfer1::IPluginV2DynamicExt *TorchEmbeddingPluginDynamic::clone() const
+    PLUGIN_NOEXCEPT {
   TorchEmbeddingPluginDynamic *plugin = new TorchEmbeddingPluginDynamic(
       mLayerName, mNumEmbeddings, mEmbeddingDim);
   plugin->setPluginNamespace(getPluginNamespace());
@@ -46,7 +43,7 @@ nvinfer1::IPluginV2DynamicExt *TorchEmbeddingPluginDynamic::clone() const {
 
 nvinfer1::DimsExprs TorchEmbeddingPluginDynamic::getOutputDimensions(
     int outputIndex, const nvinfer1::DimsExprs *inputs, int nbInputs,
-    nvinfer1::IExprBuilder &exprBuilder) {
+    nvinfer1::IExprBuilder &exprBuilder) PLUGIN_NOEXCEPT {
   nvinfer1::DimsExprs ret;
   ret.nbDims = inputs[0].nbDims + 1;
   for (int i = 0; i < inputs[0].nbDims; ++i) {
@@ -58,7 +55,7 @@ nvinfer1::DimsExprs TorchEmbeddingPluginDynamic::getOutputDimensions(
 
 bool TorchEmbeddingPluginDynamic::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs,
-    int nbOutputs) {
+    int nbOutputs) PLUGIN_NOEXCEPT {
   const auto *in = inOut;
   const auto *out = inOut + nbInputs;
 
@@ -77,18 +74,21 @@ bool TorchEmbeddingPluginDynamic::supportsFormatCombination(
 
 void TorchEmbeddingPluginDynamic::configurePlugin(
     const nvinfer1::DynamicPluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::DynamicPluginTensorDesc *outputs, int nbOutputs) {}
+    const nvinfer1::DynamicPluginTensorDesc *outputs,
+    int nbOutputs) PLUGIN_NOEXCEPT {}
 
 size_t TorchEmbeddingPluginDynamic::getWorkspaceSize(
     const nvinfer1::PluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::PluginTensorDesc *outputs, int nbOutputs) const {
+    const nvinfer1::PluginTensorDesc *outputs,
+    int nbOutputs) const PLUGIN_NOEXCEPT {
   return 0;
 }
 
 int TorchEmbeddingPluginDynamic::enqueue(
     const nvinfer1::PluginTensorDesc *inputDesc,
     const nvinfer1::PluginTensorDesc *outputDesc, const void *const *inputs,
-    void *const *outputs, void *workSpace, cudaStream_t stream) {
+    void *const *outputs, void *workSpace,
+    cudaStream_t stream) PLUGIN_NOEXCEPT {
   nvinfer1::Dims input_dims = inputDesc[0].dims;
   int num_indices = 1;
   for (int i = 0; i < input_dims.nbDims; ++i) {
@@ -113,69 +113,57 @@ int TorchEmbeddingPluginDynamic::enqueue(
 }
 
 nvinfer1::DataType TorchEmbeddingPluginDynamic::getOutputDataType(
-    int index, const nvinfer1::DataType *inputTypes, int nbInputs) const {
+    int index, const nvinfer1::DataType *inputTypes,
+    int nbInputs) const PLUGIN_NOEXCEPT {
   return nvinfer1::DataType::kFLOAT;
 }
 
 // IPluginV2 Methods
-const char *TorchEmbeddingPluginDynamic::getPluginType() const {
+const char *TorchEmbeddingPluginDynamic::getPluginType() const PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *TorchEmbeddingPluginDynamic::getPluginVersion() const {
+const char *TorchEmbeddingPluginDynamic::getPluginVersion() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-int TorchEmbeddingPluginDynamic::getNbOutputs() const { return 1; }
+int TorchEmbeddingPluginDynamic::getNbOutputs() const PLUGIN_NOEXCEPT {
+  return 1;
+}
 
-int TorchEmbeddingPluginDynamic::initialize() { return 0; }
-
-void TorchEmbeddingPluginDynamic::terminate() {}
-
-size_t TorchEmbeddingPluginDynamic::getSerializationSize() const {
+size_t TorchEmbeddingPluginDynamic::getSerializationSize() const
+    PLUGIN_NOEXCEPT {
   return sizeof(mNumEmbeddings) + sizeof(mEmbeddingDim);
 }
 
-void TorchEmbeddingPluginDynamic::serialize(void *buffer) const {
+void TorchEmbeddingPluginDynamic::serialize(void *buffer) const
+    PLUGIN_NOEXCEPT {
   serialize_value(&buffer, mNumEmbeddings);
   serialize_value(&buffer, mEmbeddingDim);
-}
-
-void TorchEmbeddingPluginDynamic::destroy() {
-  // This gets called when the network containing plugin is destroyed
-  delete this;
-}
-
-void TorchEmbeddingPluginDynamic::setPluginNamespace(const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *TorchEmbeddingPluginDynamic::getPluginNamespace() const {
-  return mNamespace.c_str();
 }
 
 ////////////////////// creator /////////////////////////////
 
 TorchEmbeddingPluginDynamicCreator::TorchEmbeddingPluginDynamicCreator() {
+  mPluginAttributes = std::vector<PluginField>(
+      {PluginField("num_embeddings"), PluginField("embedding_dim")});
   mFC.nbFields = mPluginAttributes.size();
   mFC.fields = mPluginAttributes.data();
 }
 
-const char *TorchEmbeddingPluginDynamicCreator::getPluginName() const {
+const char *TorchEmbeddingPluginDynamicCreator::getPluginName() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *TorchEmbeddingPluginDynamicCreator::getPluginVersion() const {
+const char *TorchEmbeddingPluginDynamicCreator::getPluginVersion() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-const PluginFieldCollection *
-TorchEmbeddingPluginDynamicCreator::getFieldNames() {
-  return &mFC;
-}
-
 IPluginV2 *TorchEmbeddingPluginDynamicCreator::createPlugin(
-    const char *name, const PluginFieldCollection *fc) {
+    const char *name, const PluginFieldCollection *fc) PLUGIN_NOEXCEPT {
   int numEmbeddings = 0;
   int embeddingDim = 0;
 
@@ -201,21 +189,13 @@ IPluginV2 *TorchEmbeddingPluginDynamicCreator::createPlugin(
 }
 
 IPluginV2 *TorchEmbeddingPluginDynamicCreator::deserializePlugin(
-    const char *name, const void *serialData, size_t serialLength) {
+    const char *name, const void *serialData,
+    size_t serialLength) PLUGIN_NOEXCEPT {
   // This object will be deleted when the network is destroyed, which will
   // call FCPluginDynamic::destroy()
   auto plugin = new TorchEmbeddingPluginDynamic(name, serialData, serialLength);
   plugin->setPluginNamespace(getPluginNamespace());
   return plugin;
-}
-
-void TorchEmbeddingPluginDynamicCreator::setPluginNamespace(
-    const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *TorchEmbeddingPluginDynamicCreator::getPluginNamespace() const {
-  return mNamespace.c_str();
 }
 
 }  // namespace plugin

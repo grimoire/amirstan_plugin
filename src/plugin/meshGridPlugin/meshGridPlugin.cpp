@@ -1,5 +1,5 @@
 
-#include "plugin/meshGridPlugin/meshGridPlugin.h"
+#include "meshGridPlugin.h"
 
 #include <assert.h>
 
@@ -19,17 +19,12 @@ static const char *PLUGIN_VERSION{"1"};
 static const char *PLUGIN_NAME{"MeshGridPluginDynamic"};
 }  // namespace
 
-PluginFieldCollection MeshGridPluginDynamicCreator::mFC{};
-std::vector<PluginField> MeshGridPluginDynamicCreator::mPluginAttributes(
-    {PluginField("num_inputs"), PluginField("slice_dims"),
-     PluginField("starts"), PluginField("strides")});
-
 MeshGridPluginDynamic::MeshGridPluginDynamic(const std::string &name,
                                              int numInputs,
                                              const nvinfer1::Dims &sliceDims,
                                              const std::vector<float> &starts,
                                              const std::vector<float> &strides)
-    : mLayerName(name),
+    : PluginDynamicBase(name),
       mNumInputs(numInputs),
       mSliceDims(sliceDims),
       mStarts(starts),
@@ -37,7 +32,7 @@ MeshGridPluginDynamic::MeshGridPluginDynamic(const std::string &name,
 
 MeshGridPluginDynamic::MeshGridPluginDynamic(const std::string name,
                                              const void *data, size_t length)
-    : mLayerName(name) {
+    : PluginDynamicBase(name) {
   deserialize_value(&data, &length, &mNumInputs);
   deserialize_value(&data, &length, &mSliceDims);
 
@@ -55,7 +50,8 @@ MeshGridPluginDynamic::MeshGridPluginDynamic(const std::string name,
       std::vector<float>(&stride_data[0], &stride_data[0] + stride_length);
 }
 
-nvinfer1::IPluginV2DynamicExt *MeshGridPluginDynamic::clone() const {
+nvinfer1::IPluginV2DynamicExt *MeshGridPluginDynamic::clone() const
+    PLUGIN_NOEXCEPT {
   MeshGridPluginDynamic *plugin = new MeshGridPluginDynamic(
       mLayerName, mNumInputs, mSliceDims, mStarts, mStrides);
   plugin->setPluginNamespace(getPluginNamespace());
@@ -65,7 +61,7 @@ nvinfer1::IPluginV2DynamicExt *MeshGridPluginDynamic::clone() const {
 
 nvinfer1::DimsExprs MeshGridPluginDynamic::getOutputDimensions(
     int outputIndex, const nvinfer1::DimsExprs *inputs, int nbInputs,
-    nvinfer1::IExprBuilder &exprBuilder) {
+    nvinfer1::IExprBuilder &exprBuilder) PLUGIN_NOEXCEPT {
   nvinfer1::DimsExprs ret;
 
   // torch meshgrid
@@ -87,7 +83,7 @@ nvinfer1::DimsExprs MeshGridPluginDynamic::getOutputDimensions(
 
 bool MeshGridPluginDynamic::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs,
-    int nbOutputs) {
+    int nbOutputs) PLUGIN_NOEXCEPT {
   const auto *in = inOut;
   const auto *out = inOut + nbInputs;
 
@@ -105,13 +101,15 @@ bool MeshGridPluginDynamic::supportsFormatCombination(
 
 void MeshGridPluginDynamic::configurePlugin(
     const nvinfer1::DynamicPluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::DynamicPluginTensorDesc *outputs, int nbOutputs) {
+    const nvinfer1::DynamicPluginTensorDesc *outputs,
+    int nbOutputs) PLUGIN_NOEXCEPT {
   // Validate input arguments
 }
 
 size_t MeshGridPluginDynamic::getWorkspaceSize(
     const nvinfer1::PluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::PluginTensorDesc *outputs, int nbOutputs) const {
+    const nvinfer1::PluginTensorDesc *outputs,
+    int nbOutputs) const PLUGIN_NOEXCEPT {
   return 0;
 }
 
@@ -119,7 +117,7 @@ int MeshGridPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc,
                                    const nvinfer1::PluginTensorDesc *outputDesc,
                                    const void *const *inputs,
                                    void *const *outputs, void *workSpace,
-                                   cudaStream_t stream) {
+                                   cudaStream_t stream) PLUGIN_NOEXCEPT {
   if (mNumInputs > 0) {
     // torch mesh grid
     for (int i = 0; i < mNumInputs; ++i) {
@@ -196,18 +194,21 @@ int MeshGridPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc,
 }
 
 nvinfer1::DataType MeshGridPluginDynamic::getOutputDataType(
-    int index, const nvinfer1::DataType *inputTypes, int nbInputs) const {
+    int index, const nvinfer1::DataType *inputTypes,
+    int nbInputs) const PLUGIN_NOEXCEPT {
   return inputTypes[0];
 }
 
 // IPluginV2 Methods
-const char *MeshGridPluginDynamic::getPluginType() const { return PLUGIN_NAME; }
+const char *MeshGridPluginDynamic::getPluginType() const PLUGIN_NOEXCEPT {
+  return PLUGIN_NAME;
+}
 
-const char *MeshGridPluginDynamic::getPluginVersion() const {
+const char *MeshGridPluginDynamic::getPluginVersion() const PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-int MeshGridPluginDynamic::getNbOutputs() const {
+int MeshGridPluginDynamic::getNbOutputs() const PLUGIN_NOEXCEPT {
   if (mNumInputs > 0) {
     return mNumInputs;
   } else {
@@ -215,17 +216,13 @@ int MeshGridPluginDynamic::getNbOutputs() const {
   }
 }
 
-int MeshGridPluginDynamic::initialize() { return 0; }
-
-void MeshGridPluginDynamic::terminate() {}
-
-size_t MeshGridPluginDynamic::getSerializationSize() const {
+size_t MeshGridPluginDynamic::getSerializationSize() const PLUGIN_NOEXCEPT {
   return sizeof(mNumInputs) + sizeof(mSliceDims) + sizeof(int) * 2 +
          mStarts.size() * sizeof(float) + mStrides.size() * sizeof(float) +
          sizeof(mStrides);
 }
 
-void MeshGridPluginDynamic::serialize(void *buffer) const {
+void MeshGridPluginDynamic::serialize(void *buffer) const PLUGIN_NOEXCEPT {
   serialize_value(&buffer, mNumInputs);
   serialize_value(&buffer, mSliceDims);
 
@@ -239,40 +236,28 @@ void MeshGridPluginDynamic::serialize(void *buffer) const {
   serFromHost(d, mStrides.data(), stride_length);
 }
 
-void MeshGridPluginDynamic::destroy() {
-  // This gets called when the network containing plugin is destroyed
-  delete this;
-}
-
-void MeshGridPluginDynamic::setPluginNamespace(const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *MeshGridPluginDynamic::getPluginNamespace() const {
-  return mNamespace.c_str();
-}
-
 ////////////////////// creator /////////////////////////////
 
 MeshGridPluginDynamicCreator::MeshGridPluginDynamicCreator() {
+  mPluginAttributes = std::vector<PluginField>(
+      {PluginField("num_inputs"), PluginField("slice_dims"),
+       PluginField("starts"), PluginField("strides")});
   mFC.nbFields = mPluginAttributes.size();
   mFC.fields = mPluginAttributes.data();
 }
 
-const char *MeshGridPluginDynamicCreator::getPluginName() const {
+const char *MeshGridPluginDynamicCreator::getPluginName() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *MeshGridPluginDynamicCreator::getPluginVersion() const {
+const char *MeshGridPluginDynamicCreator::getPluginVersion() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-const PluginFieldCollection *MeshGridPluginDynamicCreator::getFieldNames() {
-  return &mFC;
-}
-
 IPluginV2 *MeshGridPluginDynamicCreator::createPlugin(
-    const char *name, const PluginFieldCollection *fc) {
+    const char *name, const PluginFieldCollection *fc) PLUGIN_NOEXCEPT {
   int numInputs = 0;
   nvinfer1::Dims sliceDims;
   sliceDims.nbDims = 0;
@@ -317,21 +302,13 @@ IPluginV2 *MeshGridPluginDynamicCreator::createPlugin(
 }
 
 IPluginV2 *MeshGridPluginDynamicCreator::deserializePlugin(
-    const char *name, const void *serialData, size_t serialLength) {
+    const char *name, const void *serialData,
+    size_t serialLength) PLUGIN_NOEXCEPT {
   // This object will be deleted when the network is destroyed, which will
   // call FCPluginDynamic::destroy()
   auto plugin = new MeshGridPluginDynamic(name, serialData, serialLength);
   plugin->setPluginNamespace(getPluginNamespace());
   return plugin;
-}
-
-void MeshGridPluginDynamicCreator::setPluginNamespace(
-    const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *MeshGridPluginDynamicCreator::getPluginNamespace() const {
-  return mNamespace.c_str();
 }
 
 }  // namespace plugin

@@ -46,7 +46,6 @@
 
 #include "NvInfer.h"
 #include "NvInferPlugin.h"
-#include "logger.h"
 
 using namespace nvinfer1;
 using namespace plugin;
@@ -225,9 +224,9 @@ inline void loadLibrary(const std::string& path) {
 #endif
   if (handle == nullptr) {
 #ifdef _MSC_VER
-    gLogError << "Could not load plugin library: " << path << std::endl;
+    std::cerr << "Could not load plugin library: " << path << std::endl;
 #else
-    gLogError << "Could not load plugin library: " << path
+    std::cerr << "Could not load plugin library: " << path
               << ", due to: " << dlerror() << std::endl;
 #endif
   }

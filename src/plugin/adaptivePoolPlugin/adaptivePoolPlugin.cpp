@@ -1,5 +1,5 @@
 
-#include "plugin/adaptivePoolPlugin/adaptivePoolPlugin.h"
+#include "adaptivePoolPlugin.h"
 
 #include <assert.h>
 
@@ -19,23 +19,22 @@ static const char *PLUGIN_VERSION{"1"};
 static const char *PLUGIN_NAME{"AdaptivePoolPluginDynamic"};
 }  // namespace
 
-PluginFieldCollection AdaptivePoolPluginDynamicCreator::mFC{};
-std::vector<PluginField> AdaptivePoolPluginDynamicCreator::mPluginAttributes(
-    {PluginField("output_size"), PluginField("pooling_type")});
-
 AdaptivePoolPluginDynamic::AdaptivePoolPluginDynamic(
     const std::string &name, const nvinfer1::Dims &outputSize, int poolingType)
-    : mLayerName(name), mOutputSize(outputSize), mPoolingType(poolingType) {}
+    : PluginDynamicBase(name),
+      mOutputSize(outputSize),
+      mPoolingType(poolingType) {}
 
 AdaptivePoolPluginDynamic::AdaptivePoolPluginDynamic(const std::string name,
                                                      const void *data,
                                                      size_t length)
-    : mLayerName(name) {
+    : PluginDynamicBase(name) {
   deserialize_value(&data, &length, &mOutputSize);
   deserialize_value(&data, &length, &mPoolingType);
 }
 
-nvinfer1::IPluginV2DynamicExt *AdaptivePoolPluginDynamic::clone() const {
+nvinfer1::IPluginV2DynamicExt *AdaptivePoolPluginDynamic::clone() const
+    PLUGIN_NOEXCEPT {
   AdaptivePoolPluginDynamic *plugin =
       new AdaptivePoolPluginDynamic(mLayerName, mOutputSize, mPoolingType);
   plugin->setPluginNamespace(getPluginNamespace());
@@ -45,7 +44,7 @@ nvinfer1::IPluginV2DynamicExt *AdaptivePoolPluginDynamic::clone() const {
 
 nvinfer1::DimsExprs AdaptivePoolPluginDynamic::getOutputDimensions(
     int outputIndex, const nvinfer1::DimsExprs *inputs, int nbInputs,
-    nvinfer1::IExprBuilder &exprBuilder) {
+    nvinfer1::IExprBuilder &exprBuilder) PLUGIN_NOEXCEPT {
   nvinfer1::DimsExprs ret;
   int nbdims_input = inputs[0].nbDims;
   ret.nbDims = nbdims_input;
@@ -81,7 +80,7 @@ nvinfer1::DimsExprs AdaptivePoolPluginDynamic::getOutputDimensions(
 
 bool AdaptivePoolPluginDynamic::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs,
-    int nbOutputs) {
+    int nbOutputs) PLUGIN_NOEXCEPT {
   // assert(0 <= pos && pos < 2);
   const auto *in = inOut;
   const auto *out = inOut + nbInputs;
@@ -103,22 +102,24 @@ bool AdaptivePoolPluginDynamic::supportsFormatCombination(
 
 void AdaptivePoolPluginDynamic::configurePlugin(
     const nvinfer1::DynamicPluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::DynamicPluginTensorDesc *outputs, int nbOutputs) {
+    const nvinfer1::DynamicPluginTensorDesc *outputs,
+    int nbOutputs) PLUGIN_NOEXCEPT {
   // Validate input arguments
   assert(nbOutputs == 1);
-  // assert(nbInputs == 1);
 }
 
 size_t AdaptivePoolPluginDynamic::getWorkspaceSize(
     const nvinfer1::PluginTensorDesc *inputs, int nbInputs,
-    const nvinfer1::PluginTensorDesc *outputs, int nbOutputs) const {
+    const nvinfer1::PluginTensorDesc *outputs,
+    int nbOutputs) const PLUGIN_NOEXCEPT {
   return 0;
 }
 
 int AdaptivePoolPluginDynamic::enqueue(
     const nvinfer1::PluginTensorDesc *inputDesc,
     const nvinfer1::PluginTensorDesc *outputDesc, const void *const *inputs,
-    void *const *outputs, void *workSpace, cudaStream_t stream) {
+    void *const *outputs, void *workSpace,
+    cudaStream_t stream) PLUGIN_NOEXCEPT {
   nvinfer1::Dims input_dims = inputDesc[0].dims;
   nvinfer1::Dims output_dims = outputDesc[0].dims;
 
@@ -143,69 +144,56 @@ int AdaptivePoolPluginDynamic::enqueue(
 }
 
 nvinfer1::DataType AdaptivePoolPluginDynamic::getOutputDataType(
-    int index, const nvinfer1::DataType *inputTypes, int nbInputs) const {
-  // assert(nbInputs == 1);
+    int index, const nvinfer1::DataType *inputTypes,
+    int nbInputs) const PLUGIN_NOEXCEPT {
   return inputTypes[0];
 }
 
 // IPluginV2 Methods
-const char *AdaptivePoolPluginDynamic::getPluginType() const {
+const char *AdaptivePoolPluginDynamic::getPluginType() const PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *AdaptivePoolPluginDynamic::getPluginVersion() const {
+const char *AdaptivePoolPluginDynamic::getPluginVersion() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-int AdaptivePoolPluginDynamic::getNbOutputs() const { return 1; }
+int AdaptivePoolPluginDynamic::getNbOutputs() const PLUGIN_NOEXCEPT {
+  return 1;
+}
 
-int AdaptivePoolPluginDynamic::initialize() { return 0; }
-
-void AdaptivePoolPluginDynamic::terminate() {}
-
-size_t AdaptivePoolPluginDynamic::getSerializationSize() const {
+size_t AdaptivePoolPluginDynamic::getSerializationSize() const PLUGIN_NOEXCEPT {
   return sizeof(mOutputSize) + sizeof(mPoolingType);
 }
 
-void AdaptivePoolPluginDynamic::serialize(void *buffer) const {
+void AdaptivePoolPluginDynamic::serialize(void *buffer) const PLUGIN_NOEXCEPT {
   serialize_value(&buffer, mOutputSize);
   serialize_value(&buffer, mPoolingType);
-}
-
-void AdaptivePoolPluginDynamic::destroy() {
-  // This gets called when the network containing plugin is destroyed
-  delete this;
-}
-
-void AdaptivePoolPluginDynamic::setPluginNamespace(const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *AdaptivePoolPluginDynamic::getPluginNamespace() const {
-  return mNamespace.c_str();
 }
 
 ////////////////////// creator /////////////////////////////
 
 AdaptivePoolPluginDynamicCreator::AdaptivePoolPluginDynamicCreator() {
+  mPluginAttributes = std::vector<nvinfer1::PluginField>(
+      {nvinfer1::PluginField("output_size"),
+       nvinfer1::PluginField("pooling_type")});
   mFC.nbFields = mPluginAttributes.size();
   mFC.fields = mPluginAttributes.data();
 }
 
-const char *AdaptivePoolPluginDynamicCreator::getPluginName() const {
+const char *AdaptivePoolPluginDynamicCreator::getPluginName() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_NAME;
 }
 
-const char *AdaptivePoolPluginDynamicCreator::getPluginVersion() const {
+const char *AdaptivePoolPluginDynamicCreator::getPluginVersion() const
+    PLUGIN_NOEXCEPT {
   return PLUGIN_VERSION;
 }
 
-const PluginFieldCollection *AdaptivePoolPluginDynamicCreator::getFieldNames() {
-  return &mFC;
-}
-
 IPluginV2 *AdaptivePoolPluginDynamicCreator::createPlugin(
-    const char *name, const PluginFieldCollection *fc) {
+    const char *name, const PluginFieldCollection *fc) PLUGIN_NOEXCEPT {
   nvinfer1::Dims outputSize;
   int poolingType = 0;
 
@@ -233,22 +221,13 @@ IPluginV2 *AdaptivePoolPluginDynamicCreator::createPlugin(
 }
 
 IPluginV2 *AdaptivePoolPluginDynamicCreator::deserializePlugin(
-    const char *name, const void *serialData, size_t serialLength) {
+    const char *name, const void *serialData,
+    size_t serialLength) PLUGIN_NOEXCEPT {
   // This object will be deleted when the network is destroyed, which will
   // call FCPluginDynamic::destroy()
   auto plugin = new AdaptivePoolPluginDynamic(name, serialData, serialLength);
   plugin->setPluginNamespace(getPluginNamespace());
   return plugin;
 }
-
-void AdaptivePoolPluginDynamicCreator::setPluginNamespace(
-    const char *libNamespace) {
-  mNamespace = libNamespace;
-}
-
-const char *AdaptivePoolPluginDynamicCreator::getPluginNamespace() const {
-  return mNamespace.c_str();
-}
-
 }  // namespace plugin
 }  // namespace amirstan
