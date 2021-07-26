@@ -77,6 +77,12 @@ INCLUDE(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 CONAN_BASIC_SETUP()
 ```
 
+- Add conan libs to the linking stage:
+
+```
+target_link_libraries(trt_sample PUBLIC ${CONAN_LIBS} ${CUDA_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${TensorRT_LIBRARIES})
+```
+
 - Compile your project:
 
 ```
