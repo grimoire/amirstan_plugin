@@ -16,6 +16,8 @@ https://github.com/grimoire/mmdetection-to-tensorrt
 
 - Install tensorrt7: https://developer.nvidia.com/tensorrt
 
+### From sources
+
 clone the repo and create build folder
 
 ```shell
@@ -50,3 +52,37 @@ set the envoirment variable(in ~/.bashrc):
 export AMIRSTAN_LIBRARY_PATH=<amirstan_plugin_root>/build/lib
 ```
 
+### Using Conan
+
+- Install [conan](https://conan.io/): 
+
+```bash
+pip install conan
+```
+
+- Add a `conanfile.txt` file to your project's root with the following content:
+
+```bash
+[requires]
+amirstan_plugin/0.4.1
+
+[generators]
+cmake
+```
+
+- Add the following lines to your project root's `CMakeLists.txt`:
+
+```
+INCLUDE(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+CONAN_BASIC_SETUP()
+```
+
+- Compile your project:
+
+```
+$ mkdir build
+$ cd build
+$ conan install .. -s compiler.libcxx=libstdc++11 --build=missing 
+$ cmake .. 
+$ make -j${nproc}
+```

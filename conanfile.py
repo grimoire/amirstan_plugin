@@ -1,8 +1,8 @@
 from conans import ConanFile, CMake
 
 
-class AmirstanConan(ConanFile):
-    name = "amirstan"
+class AmirstanPluginConan(ConanFile):
+    name = "amirstan_plugin"
     version = "0.4.1"
     license = "MIT"
 
