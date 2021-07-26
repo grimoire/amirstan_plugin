@@ -11,7 +11,6 @@
 #include "grid_anchor_dynamic.h"
 #include "serialize.hpp"
 
-
 namespace amirstan {
 namespace plugin {
 

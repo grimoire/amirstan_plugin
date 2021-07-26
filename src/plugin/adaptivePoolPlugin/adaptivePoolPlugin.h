@@ -9,7 +9,6 @@
 #include "../common/layer_base.h"
 #include "NvInferPlugin.h"
 
-
 namespace amirstan {
 namespace plugin {
 

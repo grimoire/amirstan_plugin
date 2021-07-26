@@ -45,4 +45,5 @@ endif ()
 
 cuda_add_library(${SHARED_TARGET} SHARED ${INFER_PLUGIN_SRC})
 target_link_libraries(${SHARED_TARGET} ${INFER_PLUGIN_LIB})
+target_link_libraries(${SHARED_TARGET} cublas)
 target_include_directories(${SHARED_TARGET} PRIVATE ${PROJECT_SOURCE_DIR}/common)

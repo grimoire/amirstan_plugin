@@ -5,7 +5,6 @@
 
 #include <chrono>
 
-
 // #include "group_norm.h"
 #include "amirCommon.h"
 #include "common.h"
