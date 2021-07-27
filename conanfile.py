@@ -13,10 +13,20 @@ class AmirstanPluginConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     options = { 
         "shared": [True, False],
-        "cuda_arch": ["61;62;70;72;75;80;86","61","62","70","72","75","80","86"]
+        "tensorrt_dir": "ANY",
+        "with_deepstream": [True, False],
+        "deepstream_dir": "ANY",
+        "cub_root_dir": "ANY",
+        "cuda_arch": "ANY"
     }
-    default_options = { "shared": True,
-                        "cuda_arch": "61;62;70;72;75;80;86"}
+    default_options = { 
+        "shared": True,
+        "tensorrt_dir": None,
+        "with_deepstream": False,
+        "deepstream_dir": None,
+        "cub_root_dir": None,
+        "cuda_arch": "61;62;70;72;75;80;86"
+    }
     generators = "cmake"
     exports_sources = "src*", "include*", "lib*", "CMakeLists.txt", "cmake*"
 
@@ -25,7 +35,19 @@ class AmirstanPluginConan(ConanFile):
 
     def build(self):
         cmake = CMake(self)
+
+        cmake.definitions["WITH_DEEPSTREAM"] = self.options.with_deepstream
         cmake.definitions['GPU_ARCHS'] = self.options.cuda_arch
+
+        if self.options.tensorrt_dir is not None:
+            cmake.definitions["TENSORRT_DIR"] = self.options.tensorrt_dir
+
+        if self.options.deepstream_dir is not None and self.options.with_deepstream:
+            cmake.definitions["DeepStream_DIR"] = self.options.deepstream_dir
+        
+        if self.options.cub_root_dir is not None:
+            cmake.definitions["CUB_ROOT_DIR"] = self.options.cub_root_dir
+
         cmake.configure(source_folder=".")
         cmake.build()
 

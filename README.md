@@ -62,13 +62,35 @@ pip install conan
 
 - Add a `conanfile.txt` file to your project's root with the following content:
 
-```bash
+```
 [requires]
 amirstan_plugin/0.4.1
 
 [generators]
 cmake
 ```
+
+- Additionaly, you can add a few options under the \[options\] section to configure your build:
+
+  * tensorrt_dir: path where TensorRT is located. Default `~/SDK/TensorRT`.
+  * with_deepstream: whether to compile with deepstream support. Default `False`.
+  * deepstream_dir: path where deepstream is located. Default `/opt/nvidia/deepstream/deepstream`
+  * cub_root_dir: Default `./third_party/cub`
+  * cuda_arch: list of CUDA architectures to compile for. Default `61;62;70;72;75;80;86`
+
+  For example, to use a custom TensorRT dir and compile for a specific CUDA architecture:
+
+  ```
+  [requires]
+  amirstan_plugin/0.4.1
+
+  [generators]
+  cmake
+
+  [options]
+  amirstan_plugin:tensorrt_dir=/usr/include/x86_64-linux-gnu
+  amirstan_plugin:cuda_arch=75
+  ```
 
 - Add the following lines to your project root's `CMakeLists.txt`:
 
