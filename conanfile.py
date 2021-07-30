@@ -36,17 +36,17 @@ class AmirstanPluginConan(ConanFile):
     def build(self):
         cmake = CMake(self)
 
-        cmake.definitions["WITH_DEEPSTREAM"] = self.options.with_deepstream
-        cmake.definitions['GPU_ARCHS'] = self.options.cuda_arch
+        cmake.definitions["WITH_DEEPSTREAM"] = self.options.with_deepstream.value
+        cmake.definitions['GPU_ARCHS'] = self.options.cuda_arch.value
 
-        if self.options.tensorrt_dir is not None:
-            cmake.definitions["TENSORRT_DIR"] = self.options.tensorrt_dir
+        if self.options.tensorrt_dir.value != "None":
+            cmake.definitions["TENSORRT_DIR"] = self.options.tensorrt_dir.value
 
-        if self.options.deepstream_dir is not None and self.options.with_deepstream:
-            cmake.definitions["DeepStream_DIR"] = self.options.deepstream_dir
+        if self.options.deepstream_dir != "None" and self.options.with_deepstream.value:
+            cmake.definitions["DeepStream_DIR"] = self.options.deepstream_dir.value
         
-        if self.options.cub_root_dir is not None:
-            cmake.definitions["CUB_ROOT_DIR"] = self.options.cub_root_dir
+        if self.options.cub_root_dir != "None":
+            cmake.definitions["CUB_ROOT_DIR"] = self.options.cub_root_dir.value
 
         cmake.configure(source_folder=".")
         cmake.build()
