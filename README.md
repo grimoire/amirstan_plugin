@@ -54,10 +54,16 @@ export AMIRSTAN_LIBRARY_PATH=<amirstan_plugin_root>/build/lib
 
 ### Using Conan
 
-- Install [conan](https://conan.io/): 
+- Install [Conan](https://conan.io/): 
 
 ```bash
 pip install conan
+```
+
+- Register grimoire's Conan remote:
+
+```bash
+conan remote add grimoire https://grimoire.jfrog.io/artifactory/api/conan/grimoire-conan
 ```
 
 - Add a `conanfile.txt` file to your project's root with the following content:
