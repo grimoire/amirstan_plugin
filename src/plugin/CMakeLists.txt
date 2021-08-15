@@ -26,6 +26,7 @@ set(PLUGIN_LIST adaptivePoolPlugin
                 torchEmbeddingPlugin
                 torchGatherPlugin
                 torchNMSPlugin
+                torchUnfoldPlugin
                 )
 
 set(INFER_PLUGIN_SRC InferPlugin.cpp)

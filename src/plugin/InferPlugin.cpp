@@ -19,6 +19,7 @@
 #include "torchEmbeddingPlugin/torchEmbeddingPlugin.h"
 #include "torchGatherPlugin/torchGatherPlugin.h"
 #include "torchNMSPlugin/torchNMSPlugin.h"
+#include "torchUnfoldPlugin/torchUnfoldPlugin.h"
 
 namespace amirstan {
 namespace plugin {
@@ -41,6 +42,7 @@ REGISTER_TENSORRT_PLUGIN(TorchCumPluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(TorchEmbeddingPluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(TorchGatherPluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(TorchNMSPluginDynamicCreator);
+REGISTER_TENSORRT_PLUGIN(TorchUnfoldPluginDynamicCreator);
 }  // namespace plugin
 }  // namespace amirstan
 
