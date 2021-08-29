@@ -10,11 +10,11 @@ https://github.com/grimoire/mmdetection-to-tensorrt
 
 ## Requirement
 
-- Tensorrt >= 7.0.0.11
+- Tensorrt >= 7.0.0.11 (Support TensorRT 8 now)
 
 ## Installation
 
-- Install tensorrt7: https://developer.nvidia.com/tensorrt
+- Install tensorrt: https://developer.nvidia.com/tensorrt
 
 ### From sources
 
@@ -70,7 +70,7 @@ conan remote add grimoire https://grimoire.jfrog.io/artifactory/api/conan/grimoi
 
 ```
 [requires]
-amirstan_plugin/0.4.1
+amirstan_plugin/0.5.0
 
 [generators]
 cmake
@@ -88,7 +88,7 @@ cmake
 
   ```
   [requires]
-  amirstan_plugin/0.4.1
+  amirstan_plugin/0.5.0
 
   [generators]
   cmake

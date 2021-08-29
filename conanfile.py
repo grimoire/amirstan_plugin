@@ -3,7 +3,7 @@ from conans import ConanFile, CMake
 
 class AmirstanPluginConan(ConanFile):
     name = "amirstan_plugin"
-    version = "0.4.1"
+    version = "0.5.0"
     license = "MIT"
 
     url = "https://github.com/grimoire/amirstan_plugin.git"
@@ -11,7 +11,7 @@ class AmirstanPluginConan(ConanFile):
     description = "Amirstan plugin contain some useful tensorrt plugin."
     topics = ("tensorrt", "mmdetection")
     settings = "os", "compiler", "build_type", "arch"
-    options = { 
+    options = {
         "shared": [True, False],
         "tensorrt_dir": "ANY",
         "with_deepstream": [True, False],
@@ -19,7 +19,7 @@ class AmirstanPluginConan(ConanFile):
         "cub_root_dir": "ANY",
         "cuda_arch": "ANY"
     }
-    default_options = { 
+    default_options = {
         "shared": True,
         "tensorrt_dir": None,
         "with_deepstream": False,
@@ -36,15 +36,17 @@ class AmirstanPluginConan(ConanFile):
     def build(self):
         cmake = CMake(self)
 
-        cmake.definitions["WITH_DEEPSTREAM"] = self.options.with_deepstream.value
+        cmake.definitions[
+            "WITH_DEEPSTREAM"] = self.options.with_deepstream.value
         cmake.definitions['GPU_ARCHS'] = self.options.cuda_arch.value
 
         if self.options.tensorrt_dir.value != "None":
             cmake.definitions["TENSORRT_DIR"] = self.options.tensorrt_dir.value
 
         if self.options.deepstream_dir != "None" and self.options.with_deepstream.value:
-            cmake.definitions["DeepStream_DIR"] = self.options.deepstream_dir.value
-        
+            cmake.definitions[
+                "DeepStream_DIR"] = self.options.deepstream_dir.value
+
         if self.options.cub_root_dir != "None":
             cmake.definitions["CUB_ROOT_DIR"] = self.options.cub_root_dir.value
 
@@ -53,12 +55,13 @@ class AmirstanPluginConan(ConanFile):
 
     def package(self):
         self.copy("*.h", dst="include/plugin", src="include/plugin")
-        self.copy("*.h", dst="include/amir_cuda_util", src="include/amir_cuda_util")
+        self.copy(
+            "*.h", dst="include/amir_cuda_util", src="include/amir_cuda_util")
         self.copy("*.lib", dst="lib", keep_path=False)
         self.copy("*.dll", dst="bin", keep_path=False)
         self.copy("*.dylib*", dst="lib", keep_path=False)
         self.copy("*.so*", dst="lib", keep_path=False)
         self.copy("*.a", dst="lib", keep_path=False)
-    
+
     def package_info(self):
         self.cpp_info.libs = ["amirstan_plugin"]
