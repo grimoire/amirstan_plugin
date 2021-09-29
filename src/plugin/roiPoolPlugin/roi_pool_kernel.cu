@@ -102,13 +102,11 @@ __device__ scalar_t roi_pool_single(
       bottom_data + (roi_batch_ind * channels + c) * height * width;
 
   scalar_t max_val = is_empty ? 0 : -1e10;
-  int max_idx = -1;
   for (int h = bin_y1; h < bin_y2; ++h) {
     for (int w = bin_x1; w < bin_x2; ++w) {
       int offset = h * width + w;
       if (offset_bottom_data[offset] > max_val) {
         max_val = offset_bottom_data[offset];
-        max_idx = offset;
       }
     }
   }

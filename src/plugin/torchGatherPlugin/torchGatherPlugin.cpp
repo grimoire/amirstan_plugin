@@ -66,6 +66,7 @@ bool TorchGatherPluginDynamic::supportsFormatCombination(
     case 2:
       return out[0].type == in[0].type && out[0].format == in[0].format;
   }
+  return false;
 }
 
 void TorchGatherPluginDynamic::configurePlugin(

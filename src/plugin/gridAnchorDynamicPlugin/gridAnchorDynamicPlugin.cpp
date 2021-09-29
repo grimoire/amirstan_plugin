@@ -85,8 +85,6 @@ int GridAnchorDynamicPluginDynamic::enqueue(
     const nvinfer1::PluginTensorDesc *outputDesc, const void *const *inputs,
     void *const *outputs, void *workSpace,
     cudaStream_t stream) PLUGIN_NOEXCEPT {
-  int batch_size = inputDesc[0].dims.d[0];
-  int inputChannel = inputDesc[0].dims.d[1];
   int inputHeight = inputDesc[0].dims.d[2];
   int inputWidth = inputDesc[0].dims.d[3];
 
@@ -128,7 +126,6 @@ size_t GridAnchorDynamicPluginDynamic::getSerializationSize() const
 
 void GridAnchorDynamicPluginDynamic::serialize(void *buffer) const
     PLUGIN_NOEXCEPT {
-  const void *start = buffer;
   serialize_value(&buffer, mStride);
 }
 ////////////////////// creator /////////////////////////////
@@ -152,7 +149,7 @@ const char *GridAnchorDynamicPluginDynamicCreator::getPluginVersion() const
 
 IPluginV2 *GridAnchorDynamicPluginDynamicCreator::createPlugin(
     const char *name, const PluginFieldCollection *fc) PLUGIN_NOEXCEPT {
-  int stride;
+  int stride = 0;
 
   for (int i = 0; i < fc->nbFields; i++) {
     if (fc->fields[i].data == nullptr) {

@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-#include "NvInferPlugin.h"
+#include "NvInferRuntime.h"
 #include "NvInferVersion.h"
 
 namespace amirstan {

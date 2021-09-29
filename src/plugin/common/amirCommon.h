@@ -1,30 +1,29 @@
 #pragma once
 
-#include "NvInfer.h"
-#include "NvInferRuntimeCommon.h"
+#include "NvInferRuntime.h"
 #include "common.h"
 #include "cublas_v2.h"
 
 namespace amirstan {
-inline void convertAndCopyToDevice(const nvinfer1::Weights &src,
-                                   float *destDev) {
-  size_t wordSize = sizeof(float);
-  size_t nbBytes = src.count * wordSize;
-  if (src.type == nvinfer1::DataType::kFLOAT) {
-    std::cout << "Float Weights(Host) => Float Array(Device)" << std::endl;
-    CHECK(cudaMemcpy(destDev, src.values, nbBytes, cudaMemcpyHostToDevice));
-  } else {
-    std::cout << "Half Weights(Host) => Float Array(Device)" << std::endl;
-    std::vector<float> tmp(src.count);
-    const half *values = reinterpret_cast<const half *>(src.values);
+// inline void convertAndCopyToDevice(const nvinfer1::Weights &src,
+//                                    float *destDev) {
+//   size_t wordSize = sizeof(float);
+//   size_t nbBytes = src.count * wordSize;
+//   if (src.type == nvinfer1::DataType::kFLOAT) {
+//     std::cout << "Float Weights(Host) => Float Array(Device)" << std::endl;
+//     CHECK(cudaMemcpy(destDev, src.values, nbBytes, cudaMemcpyHostToDevice));
+//   } else {
+//     std::cout << "Half Weights(Host) => Float Array(Device)" << std::endl;
+//     std::vector<float> tmp(src.count);
+//     const half *values = reinterpret_cast<const half *>(src.values);
 
-    for (int it = 0; it < tmp.size(); it++) {
-      tmp[it] = __half2float(values[it]);
-    }
+//     for (int it = 0; it < tmp.size(); it++) {
+//       tmp[it] = __half2float(values[it]);
+//     }
 
-    CHECK(cudaMemcpy(destDev, &tmp[0], nbBytes, cudaMemcpyHostToDevice));
-  }
-}
+//     CHECK(cudaMemcpy(destDev, &tmp[0], nbBytes, cudaMemcpyHostToDevice));
+//   }
+// }
 
 template <typename T>
 inline T *deserToDev(const char *&buffer, size_t nbElem) {

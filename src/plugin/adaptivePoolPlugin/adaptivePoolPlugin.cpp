@@ -14,6 +14,14 @@
 namespace amirstan {
 namespace plugin {
 
+enum class PoolingType : int32_t {
+  kMAX = 0,      // Maximum over elements
+  kAVERAGE = 1,  // Average over elements. If the tensor is padded, the count
+                 // includes the padding
+  kMAX_AVERAGE_BLEND = 2  // Blending between max and average pooling:
+                          // (1-blendFactor)*maxPool + blendFactor*avgPool
+};
+
 namespace {
 static const char *PLUGIN_VERSION{"1"};
 static const char *PLUGIN_NAME{"AdaptivePoolPluginDynamic"};
@@ -98,6 +106,7 @@ bool AdaptivePoolPluginDynamic::supportsFormatCombination(
         return out[0].type == in[0].type && out[0].format == in[0].format;
     }
   }
+  return false;
 }
 
 void AdaptivePoolPluginDynamic::configurePlugin(
@@ -123,12 +132,12 @@ int AdaptivePoolPluginDynamic::enqueue(
   nvinfer1::Dims input_dims = inputDesc[0].dims;
   nvinfer1::Dims output_dims = outputDesc[0].dims;
 
-  amirstan::plugin::PoolType pool_type;
+  amirstan::plugin::PoolType pool_type = amirstan::plugin::PoolType::MAX;
   switch (mPoolingType) {
-    case int(nvinfer1::PoolingType::kMAX):
+    case int(PoolingType::kMAX):
       pool_type = amirstan::plugin::PoolType::MAX;
       break;
-    case int(nvinfer1::PoolingType::kAVERAGE):
+    case int(PoolingType::kAVERAGE):
       pool_type = amirstan::plugin::PoolType::AVERAGE;
       break;
     default:

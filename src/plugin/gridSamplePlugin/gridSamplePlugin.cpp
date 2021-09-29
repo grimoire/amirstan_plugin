@@ -14,6 +14,12 @@
 namespace amirstan {
 namespace plugin {
 
+enum class ResizeMode : int32_t {
+  kNEAREST = 0,  //!< ND (0 < N <= 8) nearest neighbor resizing.
+  kLINEAR = 1    //!< Can handle linear (1D), bilinear (2D), and trilinear (3D)
+                 //!< resizing.
+};
+
 namespace {
 static const char *PLUGIN_VERSION{"1"};
 static const char *PLUGIN_NAME{"GridSamplePluginDynamic"};
@@ -74,6 +80,7 @@ bool GridSamplePluginDynamic::supportsFormatCombination(
     case 2:
       return out[0].type == in[0].type && out[0].format == in[0].format;
   }
+  return false;
 }
 
 void GridSamplePluginDynamic::configurePlugin(
@@ -101,12 +108,12 @@ int GridSamplePluginDynamic::enqueue(
 
   amirstan::plugin::GridSamplerInterpolation intep_mode =
       amirstan::plugin::GridSamplerInterpolation::Nearest;
-  switch (nvinfer1::ResizeMode(mMode)) {
-    case nvinfer1::ResizeMode::kLINEAR:
+  switch (ResizeMode(mMode)) {
+    case ResizeMode::kLINEAR:
       intep_mode = amirstan::plugin::GridSamplerInterpolation::Bilinear;
       break;
 
-    case nvinfer1::ResizeMode::kNEAREST:
+    case ResizeMode::kNEAREST:
       intep_mode = amirstan::plugin::GridSamplerInterpolation::Nearest;
       break;
     default:

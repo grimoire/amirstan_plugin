@@ -72,16 +72,11 @@ size_t GroupNormPluginDynamic::getWorkspaceSize(
     int nbOutputs) const PLUGIN_NOEXCEPT {
   size_t wordSize = samplesCommon::getElementSize(inputs[0].type);
   int batch_size = inputs[0].dims.d[0];
-  int channel_size = inputs[0].dims.d[1];
-  int width = inputs[0].dims.d[2];
-  int height = inputs[0].dims.d[3];
   size_t mean_size =
       amirstan::common::getAlignedSize(batch_size * mNumGroups * wordSize);
   size_t var_size = mean_size;
-  size_t mean_var_size = amirstan::common::getAlignedSize(
-      batch_size * channel_size * width * height * wordSize);
 
-  size_t final_size = mean_size + var_size + 100;
+  size_t final_size = mean_size + var_size + 128;
   return final_size;
 }
 

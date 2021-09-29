@@ -20,7 +20,7 @@
 #include <iostream>
 #include <string>
 
-#include "NvInferPlugin.h"
+#include "NvInferPluginUtils.h"
 
 // Enumerator for status
 typedef enum {

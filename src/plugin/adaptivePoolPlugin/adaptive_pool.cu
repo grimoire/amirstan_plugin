@@ -167,7 +167,7 @@ void adaptive_pool(T *output, const T *input, int *input_dims, int *output_dims,
   size_t num_cell = output_stride.size[0] * ts_output_size.size[0];
 
   int thread_per_cell = 1;
-  while ((thread_per_cell << 1) < reduce_cell_count) {
+  while ((thread_per_cell << 1) < int(reduce_cell_count)) {
     thread_per_cell = thread_per_cell << 1;
   }
   thread_per_cell = std::min(CUDA_NUM_THREADS, thread_per_cell);

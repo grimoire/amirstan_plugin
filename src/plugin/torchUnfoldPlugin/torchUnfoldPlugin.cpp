@@ -95,6 +95,7 @@ bool TorchUnfoldPluginDynamic::supportsFormatCombination(
       return inOut[1].type == inOut[0].type &&
              inOut[1].format == inOut[0].format;
   }
+  return false;
 }
 
 void TorchUnfoldPluginDynamic::configurePlugin(
@@ -132,7 +133,7 @@ int TorchUnfoldPluginDynamic::enqueue(
           mStride[0] +
       1;
 
-  for (size_t i = 0; i < batch_size; ++i) {
+  for (size_t i = 0; i < size_t(batch_size); ++i) {
     const void *input = nullptr;
     void *output = nullptr;
     switch (data_type) {

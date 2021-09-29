@@ -109,6 +109,8 @@ const char *cublasGetErrorString(cublasStatus_t error) {
     case CUBLAS_STATUS_LICENSE_ERROR:
       return "CUBLAS_STATUS_LICENSE_ERROR";
 #endif
+    default:
+      return "UNKNOW_ERROR";
   }
   return "Unknown cublas status";
 }

@@ -65,8 +65,6 @@ bool DeformablePoolPluginDynamic::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs,
     int nbOutputs) PLUGIN_NOEXCEPT {
   // assert(0 <= pos && pos < 2);
-  const auto *in = inOut;
-  const auto *out = inOut + nbInputs;
   return inOut[pos].type == nvinfer1::DataType::kFLOAT &&
          inOut[pos].format == nvinfer1::TensorFormat::kLINEAR;
 }
@@ -177,7 +175,10 @@ const char *DeformablePoolPluginDynamicCreator::getPluginVersion() const
 
 IPluginV2 *DeformablePoolPluginDynamicCreator::createPlugin(
     const char *name, const PluginFieldCollection *fc) PLUGIN_NOEXCEPT {
-  nvinfer1::Dims outSize = {2, {7, 7}};
+  nvinfer1::Dims outSize;
+  outSize.nbDims = 2;
+  outSize.d[0] = 7;
+  outSize.d[1] = 7;
   float spatialScale = 1.;
   int samplingRatio = 0.;
   float gamma = 0.1;

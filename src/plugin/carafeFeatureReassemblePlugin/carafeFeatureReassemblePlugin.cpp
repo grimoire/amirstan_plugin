@@ -85,6 +85,7 @@ bool CarafeFeatureReassemblePluginDynamic::supportsFormatCombination(
       return out[0].type == nvinfer1::DataType::kFLOAT &&
              out[0].format == nvinfer1::TensorFormat::kLINEAR;
   }
+  return false;
 }
 
 void CarafeFeatureReassemblePluginDynamic::configurePlugin(
@@ -139,14 +140,12 @@ int CarafeFeatureReassemblePluginDynamic::enqueue(
   int sizeof_dtype = samplesCommon::getElementSize(nvinfer1::DataType::kFLOAT);
   size_t rfeature_size = amirstan::common::getAlignedSize(
       batch_size * numChannel * inputHeight * inputWidth * sizeof_dtype);
-  size_t rmask_size = amirstan::common::getAlignedSize(
-      batch_size * maskChannel * outputHeight * outputWidth * sizeof_dtype);
   size_t routput_size = amirstan::common::getAlignedSize(
       batch_size * numChannel * outputHeight * outputWidth * sizeof_dtype);
 
   void *rfeatures = workSpace;
-  void *rmasks = workSpace + rfeature_size;
-  void *routput = rmasks + routput_size;
+  void *rmasks = (char *)workSpace + rfeature_size;
+  void *routput = (char *)rmasks + routput_size;
   const void *features = inputs[0];
   const void *masks = inputs[1];
   void *output = outputs[0];
@@ -219,8 +218,6 @@ const char *CarafeFeatureReassemblePluginDynamicCreator::getPluginVersion()
 
 IPluginV2 *CarafeFeatureReassemblePluginDynamicCreator::createPlugin(
     const char *name, const PluginFieldCollection *fc) PLUGIN_NOEXCEPT {
-  int outDims = 0;
-
   int scaleFactor = 1;
   int upKernel = 1;
   int upGroup = 1;

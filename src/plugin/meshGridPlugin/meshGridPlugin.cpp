@@ -85,7 +85,6 @@ bool MeshGridPluginDynamic::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs,
     int nbOutputs) PLUGIN_NOEXCEPT {
   const auto *in = inOut;
-  const auto *out = inOut + nbInputs;
 
   if (pos == 0) {
     return (in[pos].type == nvinfer1::DataType::kFLOAT &&

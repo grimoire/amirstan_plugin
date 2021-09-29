@@ -33,11 +33,11 @@ void compute_group_norm(T *output, const T *input, int batch_size,
                         cudaStream_t stream, void *workspace) {
   size_t word_size = sizeof(T);
   T *mean = (T *)workspace;
-  workspace = workspace + amirstan::common::getAlignedSize(
-                              batch_size * num_groups * word_size);
+  workspace = (char *)workspace + amirstan::common::getAlignedSize(
+                                      batch_size * num_groups * word_size);
   T *var = (T *)workspace;
-  workspace = workspace + amirstan::common::getAlignedSize(
-                              batch_size * num_groups * word_size);
+  workspace = (char *)workspace + amirstan::common::getAlignedSize(
+                                      batch_size * num_groups * word_size);
   int mean_var_shape[2] = {batch_size * num_groups,
                            num_channels * WH / num_groups};
   bool mean_var_reduce_dims[2] = {false, true};

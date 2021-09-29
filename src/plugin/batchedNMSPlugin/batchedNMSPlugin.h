@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "../common/layer_base.h"
-#include "NvInferPlugin.h"
+#include "NvInferPluginUtils.h"
 
 namespace amirstan {
 namespace plugin {

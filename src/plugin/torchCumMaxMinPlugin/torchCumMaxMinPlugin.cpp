@@ -63,6 +63,7 @@ bool TorchCumMaxMinPluginDynamic::supportsFormatCombination(
       return out[1].type == nvinfer1::DataType::kINT32 &&
              out[1].format == nvinfer1::TensorFormat::kLINEAR;
   }
+  return false;
 }
 
 void TorchCumMaxMinPluginDynamic::configurePlugin(
@@ -85,7 +86,6 @@ int TorchCumMaxMinPluginDynamic::enqueue(
     void *const *outputs, void *workSpace,
     cudaStream_t stream) PLUGIN_NOEXCEPT {
   nvinfer1::Dims input_dims = inputDesc[0].dims;
-  nvinfer1::Dims output_dims = outputDesc[0].dims;
 
   auto data_type = inputDesc[0].type;
 
@@ -117,6 +117,7 @@ nvinfer1::DataType TorchCumMaxMinPluginDynamic::getOutputDataType(
     default:
       break;
   }
+  return inputTypes[0];
 }
 
 // IPluginV2 Methods

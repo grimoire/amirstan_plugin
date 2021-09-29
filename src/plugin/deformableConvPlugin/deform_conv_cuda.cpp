@@ -40,7 +40,6 @@ int deform_conv_forward_cuda(float *input, float *weight, float *bias,
                              float *offset, float *output, void *workspace,
                              const DCN_PARAMS &dcn_params,
                              cudaStream_t stream) {
-  int sizeof_dtype = sizeof(float);
   cublasHandle_t cublas_handle = dcn_params.cublas_handle;
   int kW = dcn_params.kernelW;
   int kH = dcn_params.kernelH;
@@ -74,15 +73,13 @@ int deform_conv_forward_cuda(float *input, float *weight, float *bias,
       nInputPlane * kW * kH * im2col_step * outputHeight * outputWidth *
       sizeof(float));
   float *columns = (float *)workspace;
-  workspace = workspace + columns_size;
+  workspace = (char *)workspace + columns_size;
 
   float *output_buffer;
-  long long output_buffer_size = 0;
   if (im2col_step == 1) {
     output_buffer = output;
   } else {
     output_buffer = (float *)workspace;
-    output_buffer_size = batchSize * nOutputPlane * outputWidth * outputHeight;
   }
 
   long long input_elt_step =
@@ -124,8 +121,9 @@ int deform_conv_forward_cuda(float *input, float *weight, float *bias,
   }
 
   if (im2col_step != 1) {
-    int output_buffer_shape[5] = {batchSize / im2col_step, nOutputPlane,
-                                  im2col_step, outputHeight, outputWidth};
+    int output_buffer_shape[5] = {int(batchSize) / im2col_step,
+                                  int(nOutputPlane), im2col_step,
+                                  int(outputHeight), int(outputWidth)};
     int output_buffer_permute[5] = {0, 2, 1, 3, 4};
     tensorPermute(output, output_buffer, &output_buffer_shape[0],
                   &output_buffer_permute[0], 5, stream);
@@ -145,7 +143,6 @@ void modulated_deform_conv_cuda_forward(float *input, float *weight,
                                         float *output, void *workspace,
                                         const DCN_PARAMS &dcn_params,
                                         cudaStream_t stream) {
-  int sizeof_dtype = sizeof(float);
   cublasHandle_t cublas_handle = dcn_params.cublas_handle;
   int kernel_w = dcn_params.kernelW;
   int kernel_h = dcn_params.kernelH;
@@ -168,8 +165,6 @@ void modulated_deform_conv_cuda_forward(float *input, float *weight,
 
   im2col_step = std::min(int(batch), im2col_step);
   assert(batch % im2col_step == 0);
-
-  const int channels_kernel = channels / group;
 
   const int height_out =
       (height + 2 * pad_h - (dilation_h * (kernel_h - 1) + 1)) / stride_h + 1;

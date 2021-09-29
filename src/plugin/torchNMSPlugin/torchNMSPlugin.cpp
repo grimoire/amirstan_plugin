@@ -63,6 +63,7 @@ bool TorchNMSPluginDynamic::supportsFormatCombination(
       return (out[0].type == nvinfer1::DataType::kINT32 &&
               out[0].format == nvinfer1::TensorFormat::kLINEAR);
   }
+  return false;
 }
 
 void TorchNMSPluginDynamic::configurePlugin(
@@ -106,7 +107,6 @@ int TorchNMSPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc,
                                    void *const *outputs, void *workSpace,
                                    cudaStream_t stream) PLUGIN_NOEXCEPT {
   nvinfer1::Dims score_dims = inputDesc[1].dims;
-  nvinfer1::Dims output_dims = outputDesc[0].dims;
 
   int num_boxes = score_dims.d[0];
 

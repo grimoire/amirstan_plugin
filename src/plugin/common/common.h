@@ -44,11 +44,10 @@
 #include <utility>
 #include <vector>
 
-#include "NvInfer.h"
-#include "NvInferPlugin.h"
+#include "NvInferRuntime.h"
+
 
 using namespace nvinfer1;
-using namespace plugin;
 
 #ifdef _MSC_VER
 #define FN_NAME __FUNCTION__
@@ -153,6 +152,8 @@ inline unsigned int getElementSize(nvinfer1::DataType t) {
     // case nvinfer1::DataType::kBOOL:
     case nvinfer1::DataType::kINT8:
       return 1;
+    default:
+      return 0;
   }
   throw std::runtime_error("Invalid DataType.");
   return 0;

@@ -152,8 +152,6 @@ void BatchedNMSPluginCustom::configurePlugin(
 bool BatchedNMSPluginCustom::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc* inOut, int nbInputs,
     int nbOutputs) PLUGIN_NOEXCEPT {
-  const auto* in = inOut;
-  const auto* out = inOut + nbInputs;
   if (pos == 2) {
     return inOut[pos].type == nvinfer1::DataType::kINT32 &&
            inOut[pos].format == nvinfer1::TensorFormat::kLINEAR;

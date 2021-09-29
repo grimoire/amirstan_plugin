@@ -93,8 +93,6 @@ size_t DeformableConvPluginDynamic::getWorkspaceSize(
 
   int batch_size = inputs[0].dims.d[0];
   int nInputPlane = inputs[0].dims.d[1];
-  int inputHeight = inputs[0].dims.d[2];
-  int inputWidth = inputs[0].dims.d[3];
 
   int nOutputPlane = outputs[0].dims.d[1];
   int outputHeight = outputs[0].dims.d[2];
@@ -121,8 +119,6 @@ int DeformableConvPluginDynamic::enqueue(
     const nvinfer1::PluginTensorDesc *outputDesc, const void *const *inputs,
     void *const *outputs, void *workSpace,
     cudaStream_t stream) PLUGIN_NOEXCEPT {
-  const static int im2col_step = 64;
-
   int batch_size = inputDesc[0].dims.d[0];
   int inputChannel = inputDesc[0].dims.d[1];
   int inputHeight = inputDesc[0].dims.d[2];
@@ -221,11 +217,19 @@ const char *DeformableConvPluginDynamicCreator::getPluginVersion() const
   return DCN_VERSION;
 }
 
+static nvinfer1::Dims createDims2d(int nbDims, int w, int h) {
+  nvinfer1::Dims dim;
+  dim.nbDims = nbDims;
+  dim.d[1] = h;
+  dim.d[0] = w;
+  return dim;
+}
+
 IPluginV2 *DeformableConvPluginDynamicCreator::createPlugin(
     const char *name, const PluginFieldCollection *fc) PLUGIN_NOEXCEPT {
-  nvinfer1::Dims stride{2, {1, 1}};
-  nvinfer1::Dims padding{2, {0, 0}};
-  nvinfer1::Dims dilation{2, {1, 1}};
+  nvinfer1::Dims stride = createDims2d(2, 1, 1);
+  nvinfer1::Dims padding = createDims2d(2, 0, 0);
+  nvinfer1::Dims dilation = createDims2d(2, 1, 1);
   int deformableGroup = 1;
   int group = 1;
 

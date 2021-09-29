@@ -61,6 +61,7 @@ bool TorchCumPluginDynamic::supportsFormatCombination(
     case 1:
       return out[0].type == in[0].type && out[0].format == in[0].format;
   }
+  return false;
 }
 
 void TorchCumPluginDynamic::configurePlugin(
@@ -83,7 +84,6 @@ int TorchCumPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc *inputDesc,
                                    void *const *outputs, void *workSpace,
                                    cudaStream_t stream) PLUGIN_NOEXCEPT {
   nvinfer1::Dims input_dims = inputDesc[0].dims;
-  nvinfer1::Dims output_dims = outputDesc[0].dims;
 
   auto data_type = inputDesc[0].type;
 

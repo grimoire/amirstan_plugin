@@ -66,7 +66,7 @@ nvinfer1::IPluginV2DynamicExt *RoiExtractorPluginDynamic::clone() const
 nvinfer1::DimsExprs RoiExtractorPluginDynamic::getOutputDimensions(
     int outputIndex, const nvinfer1::DimsExprs *inputs, int nbInputs,
     nvinfer1::IExprBuilder &exprBuilder) PLUGIN_NOEXCEPT {
-  assert(nbInputs == mFeatmapStrides.size() + 1);
+  assert(size_t(nbInputs) == mFeatmapStrides.size() + 1);
 
   nvinfer1::DimsExprs ret;
   ret.nbDims = 4;
@@ -82,8 +82,6 @@ bool RoiExtractorPluginDynamic::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs,
     int nbOutputs) PLUGIN_NOEXCEPT {
   // assert(0 <= pos && pos < 2);
-  const auto *in = inOut;
-  const auto *out = inOut + nbInputs;
   return inOut[pos].type == nvinfer1::DataType::kFLOAT &&
          inOut[pos].format == nvinfer1::TensorFormat::kLINEAR;
 }
@@ -94,7 +92,7 @@ void RoiExtractorPluginDynamic::configurePlugin(
     int nbOutputs) PLUGIN_NOEXCEPT {
   // Validate input arguments
   assert(nbOutputs == 1);
-  assert(nbInputs == mFeatmapStrides.size() + 1);
+  assert(size_t(nbInputs) == mFeatmapStrides.size() + 1);
 }
 
 size_t RoiExtractorPluginDynamic::getWorkspaceSize(

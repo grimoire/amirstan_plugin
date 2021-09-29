@@ -70,6 +70,7 @@ LINK_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
 add_definitions(-std=c++11)
 add_definitions(-fPIC)
+add_definitions(-Wno-unused-parameter)
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()

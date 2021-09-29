@@ -70,6 +70,7 @@ bool TorchEmbeddingPluginDynamic::supportsFormatCombination(
       return out[0].type == nvinfer1::DataType::kFLOAT &&
              out[0].format == nvinfer1::TensorFormat::kLINEAR;
   }
+  return false;
 }
 
 void TorchEmbeddingPluginDynamic::configurePlugin(

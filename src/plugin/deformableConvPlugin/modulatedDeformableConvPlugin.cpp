@@ -97,18 +97,13 @@ size_t ModulatedDeformableConvPluginDynamic::getWorkspaceSize(
   /// ALPHA
   int sizeof_dtype = samplesCommon::getElementSize(outputs[0].type);
 
-  int batch_size = inputs[0].dims.d[0];
   int nInputPlane = inputs[0].dims.d[1];
-  int inputHeight = inputs[0].dims.d[2];
-  int inputWidth = inputs[0].dims.d[3];
 
-  int nOutputPlane = outputs[0].dims.d[1];
   int outputHeight = outputs[0].dims.d[2];
   int outputWidth = outputs[0].dims.d[3];
 
   int kW = inputs[3].dims.d[2];
   int kH = inputs[3].dims.d[3];
-  int im2col_step = std::min(32, batch_size);
 
   size_t col_size = amirstan::common::getAlignedSize(
       nInputPlane * kW * kH * outputHeight * outputWidth * sizeof_dtype);
@@ -228,11 +223,19 @@ const char *ModulatedDeformableConvPluginDynamicCreator::getPluginVersion()
   return DCN_VERSION;
 }
 
+static nvinfer1::Dims createDims2d(int nbDims, int w, int h) {
+  nvinfer1::Dims dim;
+  dim.nbDims = nbDims;
+  dim.d[1] = h;
+  dim.d[0] = w;
+  return dim;
+}
+
 IPluginV2 *ModulatedDeformableConvPluginDynamicCreator::createPlugin(
     const char *name, const PluginFieldCollection *fc) PLUGIN_NOEXCEPT {
-  nvinfer1::Dims stride{2, {1, 1}};
-  nvinfer1::Dims padding{2, {0, 0}};
-  nvinfer1::Dims dilation{2, {1, 1}};
+  nvinfer1::Dims stride = createDims2d(2, 1, 1);
+  nvinfer1::Dims padding = createDims2d(2, 0, 0);
+  nvinfer1::Dims dilation = createDims2d(2, 1, 1);
   int deformableGroup = 1;
   int group = 1;
 
