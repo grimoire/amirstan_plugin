@@ -46,7 +46,6 @@
 
 #include "NvInferRuntime.h"
 
-
 using namespace nvinfer1;
 
 #ifdef _MSC_VER

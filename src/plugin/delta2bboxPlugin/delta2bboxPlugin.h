@@ -8,7 +8,6 @@
 
 #include "../common/layer_base.h"
 
-
 namespace amirstan {
 namespace plugin {
 
