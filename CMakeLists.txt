@@ -13,6 +13,7 @@ if(NOT CMAKE_CUDA_DEVICE_LINK_EXECUTABLE)
     "<CMAKE_CUDA_COMPILER> ${CMAKE_CUDA_HOST_FLAGS} <FLAGS> ${CMAKE_CUDA_COMPILE_OPTIONS_PIC} ${_CMAKE_CUDA_EXTRA_DEVICE_LINK_FLAGS} -shared -dlink <OBJECTS> -o <TARGET> <LINK_LIBRARIES>${__IMPLICT_DLINK_FLAGS}")
 endif()
 INCLUDE_DIRECTORIES(/usr/local/cuda/include)
+set(CUDA_NVCC_FLAGS "-std=c++14 ${CUDA_NVCC_FLAGS}")
 
 # cub
 if (NOT DEFINED CUB_ROOT_DIR)
@@ -68,17 +69,16 @@ endif()
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
 LINK_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
-add_definitions(-std=c++11)
+add_definitions(-std=c++14)
 add_definitions(-fPIC)
 add_definitions(-Wno-unused-parameter)
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-# set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-# set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fopenmp")
 
 ############################################################################################
 # CUDA targets
