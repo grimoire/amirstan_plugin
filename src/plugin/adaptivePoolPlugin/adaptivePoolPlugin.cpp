@@ -89,24 +89,8 @@ nvinfer1::DimsExprs AdaptivePoolPluginDynamic::getOutputDimensions(
 bool AdaptivePoolPluginDynamic::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc *inOut, int nbInputs,
     int nbOutputs) PLUGIN_NOEXCEPT {
-  // assert(0 <= pos && pos < 2);
-  const auto *in = inOut;
-  const auto *out = inOut + nbInputs;
-
-  if (pos < nbInputs) {
-    switch (pos) {
-      case 0:
-        return (in[0].type == nvinfer1::DataType::kFLOAT &&
-                in[0].format == nvinfer1::TensorFormat::kLINEAR);
-    }
-
-  } else {
-    switch (pos - nbInputs) {
-      case 0:
-        return out[0].type == in[0].type && out[0].format == in[0].format;
-    }
-  }
-  return false;
+  return (inOut[pos].type == nvinfer1::DataType::kFLOAT &&
+          inOut[pos].format == nvinfer1::TensorFormat::kLINEAR);
 }
 
 void AdaptivePoolPluginDynamic::configurePlugin(
