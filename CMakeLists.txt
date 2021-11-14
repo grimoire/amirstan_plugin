@@ -14,6 +14,7 @@ if(NOT CMAKE_CUDA_DEVICE_LINK_EXECUTABLE)
 endif()
 INCLUDE_DIRECTORIES(/usr/local/cuda/include)
 set(CUDA_NVCC_FLAGS "-std=c++14 ${CUDA_NVCC_FLAGS}")
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler=-fno-gnu-unique")
 
 # cub
 if (NOT DEFINED CUB_ROOT_DIR)
