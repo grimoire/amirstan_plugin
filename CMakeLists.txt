@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.10)
+cmake_minimum_required (VERSION 3.14)
 project (trt_plugin)
 
 
@@ -18,7 +18,9 @@ set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler=-fno-gnu-unique")
 
 # cub
 if (NOT DEFINED CUB_ROOT_DIR)
-  set(CUB_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/cub")
+  if (CUDA_VERSION VERSION_LESS 11.0)
+    set(CUB_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/cub")
+  endif()
 endif()
 INCLUDE_DIRECTORIES(${CUB_ROOT_DIR})
 

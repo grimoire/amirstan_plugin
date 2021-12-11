@@ -1,92 +1,89 @@
 # Amirstan_plugin
 
-Amirstan plugin contain some useful tensorrt plugin.
-These plugins are used to support some other project such as 
+Amirstan plugin contains some useful TensorRT plugins.
+These plugins are used to support other projects:
 
-https://github.com/grimoire/torch2trt_dynamic 
+- [torch2trt_dynamic](https://github.com/grimoire/torch2trt_dynamic)
 
-https://github.com/grimoire/mmdetection-to-tensorrt
-
+- [mmdetection-to-tensorrt](https://github.com/grimoire/mmdetection-to-tensorrt)
 
 ## Requirement
 
-- Tensorrt >= 7.0.0.11 (Support TensorRT 8 now)
+- TensorRT >= 7.0.0.11 (Support TensorRT 8 now)
 
 ## Installation
 
-- Install tensorrt: https://developer.nvidia.com/tensorrt
+- Install TensorRT: [NVIDIA TensorRT](https://developer.nvidia.com/tensorrt)
 
 ### From sources
 
-clone the repo and create build folder
+- clone the repo and create `build` folder
 
-```shell
-git clone --depth=1 https://github.com/grimoire/amirstan_plugin.git
-cd amirstan_plugin
-git submodule update --init --progress --depth=1
-mkdir build
-cd build
-```
-
-either
-
-- cmake base version
-  ```shell
-  cmake -DTENSORRT_DIR=${path_to_tensorrt} ..
+  ```bash
+  git clone --depth=1 https://github.com/grimoire/amirstan_plugin.git
+  cd amirstan_plugin
+  git submodule update --init --progress --depth=1
+  mkdir build
+  cd build
   ```
 
-- or with deepstream support
-  ```shell
-  cmake -DTENSORRT_DIR=${path_to_tensorrt} -DWITH_DEEPSTREAM=true -DDeepStream_DIR=${path_to_deepstream} ..
-  ```
+- build the project with:
 
-make the plugins
+  - plugins only
 
-```shell
-make -j10
-```
+    ```bash
+    cmake -DTENSORRT_DIR=${path_to_tensorrt} ..
+    make -j$(nproc)
+    ```
 
-set the envoirment variable(in ~/.bashrc):
+  - or with DeepStream support
 
-```shell
+    ```bash
+    cmake -DTENSORRT_DIR=${path_to_tensorrt} -DWITH_DEEPSTREAM=true -DDeepStream_DIR=${path_to_deepstream} ..
+    make -j$(nproc)
+    ```
+
+- set the envoirment variable(in ~/.bashrc):
+
+```bash
 export AMIRSTAN_LIBRARY_PATH=<amirstan_plugin_root>/build/lib
 ```
 
 ### Using Conan
 
-- Install [Conan](https://conan.io/): 
+- Install [Conan](https://conan.io/):
 
-```bash
-pip install conan
-```
+  ```bash
+  pip install conan
+  ```
 
 - Register grimoire's Conan remote:
 
-```bash
-conan remote add grimoire https://grimoire.jfrog.io/artifactory/api/conan/grimoire-conan
-```
+  ```bash
+  conan remote add grimoire https://grimoire.jfrog.io/artifactory/api/conan/grimoire-conan
+  ```
 
 - Add a `conanfile.txt` file to your project's root with the following content:
 
-```
-[requires]
-amirstan_plugin/0.5.0
+  ```txt
+  [requires]
+  amirstan_plugin/0.5.0
 
-[generators]
-cmake
-```
+  [generators]
+  cmake
+  ```
 
 - Additionaly, you can add a few options under the \[options\] section to configure your build:
 
-  * tensorrt_dir: path where TensorRT is located. Default `~/SDK/TensorRT`.
-  * with_deepstream: whether to compile with deepstream support. Default `False`.
-  * deepstream_dir: path where deepstream is located. Default `/opt/nvidia/deepstream/deepstream`
-  * cub_root_dir: Default `./third_party/cub`
-  * cuda_arch: list of CUDA architectures to compile for. Default `61;62;70;72;75;80;86`
+  - tensorrt_dir: path where TensorRT is located. Default `~/SDK/TensorRT`.
+  - with_deepstream: whether to compile with deepstream support. Default `False`.
+  - deepstream_dir: path where deepstream is located. Default `/opt/nvidia/deepstream/deepstream`
+  - cub_root_dir: Default `./third_party/cub`
+  - cuda_arch: list of CUDA architectures to compile for. Default `61;62;70;72;75;80;86`
 
   For example, to use a custom TensorRT dir and compile for a specific CUDA architecture:
 
-  ```
+  ```txt
   [requires]
   amirstan_plugin/0.5.0
 
@@ -100,23 +97,23 @@ cmake
 
 - Add the following lines to your project root's `CMakeLists.txt`:
 
-```
-INCLUDE(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-CONAN_BASIC_SETUP()
-```
+  ```cmake
+  INCLUDE(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+  CONAN_BASIC_SETUP()
+  ```
 
 - Add conan libs to the linking stage:
 
-```
-target_link_libraries(trt_sample PUBLIC ${CONAN_LIBS} ${CUDA_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${TensorRT_LIBRARIES})
-```
+  ```cmake
+  target_link_libraries(trt_sample PUBLIC ${CONAN_LIBS} ${CUDA_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${TensorRT_LIBRARIES})
+  ```
 
 - Compile your project:
 
-```
-$ mkdir build
-$ cd build
-$ conan install .. -s compiler.libcxx=libstdc++11 --build=missing 
-$ cmake .. 
-$ make -j${nproc}
-```
+  ```bash
+  mkdir build
+  cd build
+  conan install .. -s compiler.libcxx=libstdc++11 --build=missing 
+  cmake .. 
+  make -j$(nproc)
+  ```
