@@ -91,8 +91,6 @@ if (DEFINED GPU_ARCHS)
   separate_arguments(GPU_ARCHS)
 else()
   list(APPEND GPU_ARCHS
-      35
-      53
       61
       70
       75
