@@ -15,27 +15,27 @@ using namespace amirstan::cuda;
 using amirstan::cuda::TensorSize;
 using amirstan::cuda::TensorStride;
 
-template <typename T>
-__global__ void torch_gather_kernel(T *dst, const T *src,
-                                    const int *gather_table, int dim,
-                                    TensorStride input_stride,
-                                    TensorStride output_stride, int nb_dims,
+template <typename T, int nb_dims>
+__global__ void torch_gather_kernel(T *__restrict__ dst,
+                                    const T *__restrict__ src,
+                                    const int *__restrict__ gather_table,
+                                    int dim, TensorStride input_stride,
+                                    TensorStride output_stride,
                                     int num_output) {
-  size_t *src_stride = &(input_stride.size[0]);
-  size_t *dst_stride = &(output_stride.size[0]);
+  size_t *__restrict__ src_stride = &(input_stride.size[0]);
+  size_t *__restrict__ dst_stride = &(output_stride.size[0]);
 
   CUDA_KERNEL_LOOP(index, num_output) {
-    size_t dst_index = index;
-    size_t src_index = 0;
+    int dst_index = index;
+    int src_index = 0;
     const int gather_value = gather_table[dst_index];
+#pragma unroll
     for (int i = 0; i < nb_dims; ++i) {
-      int dim_index = dst_index / dst_stride[i];
-      dst_index = dst_index % dst_stride[i];
-      if (i != dim) {
-        src_index += dim_index * src_stride[i];
-      } else {
-        src_index += gather_value * src_stride[i];
-      }
+      const int dst_stride_i = dst_stride[i];
+      const int src_stride_i = src_stride[i];
+      int dim_index = dst_index / dst_stride_i;
+      dst_index = dst_index % dst_stride_i;
+      src_index += ((i != dim) ? dim_index : gather_value) * src_stride_i;
     }
     dst[index] = src[src_index];
   }
@@ -65,10 +65,70 @@ void torch_gather(T *output, const T *input, const int *index, int dim,
 
   size_t num_output = output_stride.size[0] * ts_output_size.size[0];
 
-  torch_gather_kernel<T>
-      <<<GET_BLOCKS(num_output), CUDA_NUM_THREADS, 0, stream>>>(
-          output, input, index, dim, input_stride, output_stride, nb_dims,
-          num_output);
+  switch (nb_dims) {
+    case 1:
+      torch_gather_kernel<T, 1>
+          <<<GET_BLOCKS(num_output), CUDA_NUM_THREADS, 0, stream>>>(
+              output, input, index, dim, input_stride, output_stride,
+              num_output);
+      break;
+    case 2:
+      torch_gather_kernel<T, 2>
+          <<<GET_BLOCKS(num_output), CUDA_NUM_THREADS, 0, stream>>>(
+              output, input, index, dim, input_stride, output_stride,
+              num_output);
+      break;
+    case 3:
+      torch_gather_kernel<T, 3>
+          <<<GET_BLOCKS(num_output), CUDA_NUM_THREADS, 0, stream>>>(
+              output, input, index, dim, input_stride, output_stride,
+              num_output);
+      break;
+    case 4:
+      torch_gather_kernel<T, 4>
+          <<<GET_BLOCKS(num_output), CUDA_NUM_THREADS, 0, stream>>>(
+              output, input, index, dim, input_stride, output_stride,
+              num_output);
+      break;
+    case 5:
+      torch_gather_kernel<T, 5>
+          <<<GET_BLOCKS(num_output), CUDA_NUM_THREADS, 0, stream>>>(
+              output, input, index, dim, input_stride, output_stride,
+              num_output);
+      break;
+    case 6:
+      torch_gather_kernel<T, 6>
+          <<<GET_BLOCKS(num_output), CUDA_NUM_THREADS, 0, stream>>>(
+              output, input, index, dim, input_stride, output_stride,
+              num_output);
+      break;
+    case 7:
+      torch_gather_kernel<T, 7>
+          <<<GET_BLOCKS(num_output), CUDA_NUM_THREADS, 0, stream>>>(
+              output, input, index, dim, input_stride, output_stride,
+              num_output);
+      break;
+    case 8:
+      torch_gather_kernel<T, 8>
+          <<<GET_BLOCKS(num_output), CUDA_NUM_THREADS, 0, stream>>>(
+              output, input, index, dim, input_stride, output_stride,
+              num_output);
+      break;
+    case 9:
+      torch_gather_kernel<T, 9>
+          <<<GET_BLOCKS(num_output), CUDA_NUM_THREADS, 0, stream>>>(
+              output, input, index, dim, input_stride, output_stride,
+              num_output);
+      break;
+    case 10:
+      torch_gather_kernel<T, 10>
+          <<<GET_BLOCKS(num_output), CUDA_NUM_THREADS, 0, stream>>>(
+              output, input, index, dim, input_stride, output_stride,
+              num_output);
+      break;
+    default:
+      break;
+  }
 }
 
 template void torch_gather<float>(float *output, const float *input,
