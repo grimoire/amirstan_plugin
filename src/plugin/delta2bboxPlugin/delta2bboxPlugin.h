@@ -8,13 +8,13 @@
 
 #include "../common/layer_base.h"
 
+
 namespace amirstan {
 namespace plugin {
 
 class Delta2BBoxPluginDynamic : public PluginDynamicBase {
  public:
-  Delta2BBoxPluginDynamic(const std::string &name, bool useSigmoidCls,
-                          int minNumBBox, int numClasses,
+  Delta2BBoxPluginDynamic(const std::string &name, int minNumBBox,
                           const std::vector<float> &targetMeans,
                           const std::vector<float> &targetStds);
 
@@ -60,11 +60,10 @@ class Delta2BBoxPluginDynamic : public PluginDynamicBase {
   void serialize(void *buffer) const PLUGIN_NOEXCEPT override;
 
  private:
-  bool mUseSigmoidCls;
   int mMinNumBBox;
-  int mNumClasses;
   std::vector<float> mTargetMeans;
   std::vector<float> mTargetStds;
+  bool mNeedClipRange;
 };
 
 class Delta2BBoxPluginDynamicCreator : public PluginCreatorBase {

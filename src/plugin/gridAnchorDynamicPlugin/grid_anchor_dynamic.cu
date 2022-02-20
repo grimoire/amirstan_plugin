@@ -7,7 +7,6 @@
 #include "amir_cuda_util/cuda_util.h"
 #include "grid_anchor_dynamic.h"
 
-
 namespace amirstan {
 namespace plugin {
 using namespace amirstan::cuda;

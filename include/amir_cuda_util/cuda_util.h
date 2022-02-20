@@ -24,8 +24,10 @@ const int CUDA_NUM_THREADS = 512;
 const int CUDA_WARP_SIZE = 32;
 const int CUDA_NUM_WARP = CUDA_NUM_THREADS / float(CUDA_WARP_SIZE);
 const int kMaxGridNum = 65535;
+
+inline int DIVUP(const int N, const int v) { return (N + v - 1) / v; }
 inline int GET_BLOCKS(const int N) {
-  return std::min(kMaxGridNum, (N + CUDA_NUM_THREADS - 1) / CUDA_NUM_THREADS);
+  return std::min(kMaxGridNum, DIVUP(N, CUDA_NUM_THREADS));
 }
 
 struct TensorSize {
