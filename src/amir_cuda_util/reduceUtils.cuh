@@ -136,7 +136,7 @@ __global__ void reduceContigous2DKernel(T *out, const T *in,
   }
 
   extern __shared__ char smemChar[];
-  AccT *smem = (AccT *)smemChar;
+  AccT *smem = reinterpret_cast<AccT *>(smemChar);
 
   reduceNValuesInBlock<AccT, ReduceOp, 1>(smem, &r, blockDim.x, reduceOp, init);
 

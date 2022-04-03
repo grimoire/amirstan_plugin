@@ -32,12 +32,14 @@ void compute_group_norm(T *output, const T *input, int batch_size,
                         const float *weight, const float *bias,
                         cudaStream_t stream, void *workspace) {
   size_t word_size = sizeof(T);
-  T *mean = (T *)workspace;
-  workspace = (char *)workspace + amirstan::common::getAlignedSize(
-                                      batch_size * num_groups * word_size);
-  T *var = (T *)workspace;
-  workspace = (char *)workspace + amirstan::common::getAlignedSize(
-                                      batch_size * num_groups * word_size);
+  T *mean = reinterpret_cast<T *>(workspace);
+  workspace =
+      reinterpret_cast<char *>(workspace) +
+      amirstan::common::getAlignedSize(batch_size * num_groups * word_size);
+  T *var = reinterpret_cast<T *>(workspace);
+  workspace =
+      reinterpret_cast<char *>(workspace) +
+      amirstan::common::getAlignedSize(batch_size * num_groups * word_size);
   int mean_var_shape[2] = {batch_size * num_groups,
                            num_channels * WH / num_groups};
   bool mean_var_reduce_dims[2] = {false, true};
@@ -59,10 +61,5 @@ template void compute_group_norm<float>(float *output, const float *input,
                                         const float *weight, const float *bias,
                                         cudaStream_t stream, void *workspace);
 
-// template void compute_group_norm<half>(half* output, const half* input,
-//     int batch_size, int num_groups, int num_channels,  int WH,
-//     half eps,
-//     const float* weight,const float* bias,  cudaStream_t stream, void*
-//     workspace);
 }  // namespace plugin
 }  // namespace amirstan

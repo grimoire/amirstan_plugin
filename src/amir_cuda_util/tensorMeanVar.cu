@@ -75,7 +75,7 @@ void tensorMean(T *dst, T *src, int *src_size, bool *reduce_dims, int dims,
   T *permute_src;
   if (need_permute) {
     if (workspace) {
-      permute_src = (T *)workspace;
+      permute_src = reinterpret_cast<T *>(workspace);
     } else {
       cudaMalloc(&permute_src, src_length * sizeof(T));
     }
@@ -162,7 +162,7 @@ void tensorMeanVar(T *mean_dst, T *var_dst, const T *src, int *src_size,
   // create working memory
   T *permute_src;
   if (workspace) {
-    permute_src = (T *)workspace;
+    permute_src = reinterpret_cast<T *>(workspace);
   } else {
     cudaMalloc(&permute_src, src_length * sizeof(T));
   }
