@@ -17,7 +17,6 @@ set(PLUGIN_LIST adaptivePoolPlugin
                 gridAnchorDynamicPlugin
                 gridSamplePlugin
                 groupNormPlugin
-                meshGridPlugin
                 roiExtractorPlugin
                 roiPoolPlugin
                 torchBmmPlugin

@@ -9,7 +9,6 @@
 #include "gridAnchorDynamicPlugin/gridAnchorDynamicPlugin.h"
 #include "gridSamplePlugin/gridSamplePlugin.h"
 #include "groupNormPlugin/groupNormPlugin.h"
-#include "meshGridPlugin/meshGridPlugin.h"
 #include "plugin/amirInferPlugin.h"
 #include "roiExtractorPlugin/roiExtractorPlugin.h"
 #include "roiPoolPlugin/roiPoolPlugin.h"
@@ -33,7 +32,6 @@ REGISTER_TENSORRT_PLUGIN(Delta2BBoxPluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(GridAnchorDynamicPluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(GridSamplePluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(GroupNormPluginDynamicCreator);
-REGISTER_TENSORRT_PLUGIN(MeshGridPluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(RoiExtractorPluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(RoiPoolPluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(TorchBmmPluginDynamicCreator);
