@@ -9,7 +9,7 @@ These plugins are used to support other projects:
 
 ## Requirement
 
-- TensorRT >= 7.0.0.11 (Support TensorRT 8 now)
+- TensorRT >= 8.0
 
 ## Installation
 

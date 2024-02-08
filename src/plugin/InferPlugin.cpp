@@ -7,7 +7,6 @@
 #include "deformablePoolPlugin/deformablePoolPlugin.h"
 #include "delta2bboxPlugin/delta2bboxPlugin.h"
 #include "gridAnchorDynamicPlugin/gridAnchorDynamicPlugin.h"
-#include "gridSamplePlugin/gridSamplePlugin.h"
 #include "groupNormPlugin/groupNormPlugin.h"
 #include "plugin/amirInferPlugin.h"
 #include "roiExtractorPlugin/roiExtractorPlugin.h"
@@ -15,8 +14,6 @@
 #include "torchBmmPlugin/torchBmmPlugin.h"
 #include "torchCumMaxMinPlugin/torchCumMaxMinPlugin.h"
 #include "torchCumPlugin/torchCumPlugin.h"
-#include "torchEmbeddingPlugin/torchEmbeddingPlugin.h"
-#include "torchGatherPlugin/torchGatherPlugin.h"
 #include "torchNMSPlugin/torchNMSPlugin.h"
 #include "torchUnfoldPlugin/torchUnfoldPlugin.h"
 
@@ -30,15 +27,12 @@ REGISTER_TENSORRT_PLUGIN(ModulatedDeformableConvPluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(DeformablePoolPluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(Delta2BBoxPluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(GridAnchorDynamicPluginDynamicCreator);
-REGISTER_TENSORRT_PLUGIN(GridSamplePluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(GroupNormPluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(RoiExtractorPluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(RoiPoolPluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(TorchBmmPluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(TorchCumMaxMinPluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(TorchCumPluginDynamicCreator);
-REGISTER_TENSORRT_PLUGIN(TorchEmbeddingPluginDynamicCreator);
-REGISTER_TENSORRT_PLUGIN(TorchGatherPluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(TorchNMSPluginDynamicCreator);
 REGISTER_TENSORRT_PLUGIN(TorchUnfoldPluginDynamicCreator);
 }  // namespace plugin
@@ -46,5 +40,8 @@ REGISTER_TENSORRT_PLUGIN(TorchUnfoldPluginDynamicCreator);
 
 extern "C" {
 
-bool initLibAmirstanInferPlugins() { return true; }
+bool initLibAmirstanInferPlugins()
+{
+    return true;
+}
 }  // extern "C"
