@@ -15,15 +15,12 @@ set(PLUGIN_LIST adaptivePoolPlugin
                 deformablePoolPlugin
                 delta2bboxPlugin
                 gridAnchorDynamicPlugin
-                gridSamplePlugin
                 groupNormPlugin
                 roiExtractorPlugin
                 roiPoolPlugin
                 torchBmmPlugin
                 torchCumMaxMinPlugin
                 torchCumPlugin
-                torchEmbeddingPlugin
-                torchGatherPlugin
                 torchNMSPlugin
                 torchUnfoldPlugin
                 )
