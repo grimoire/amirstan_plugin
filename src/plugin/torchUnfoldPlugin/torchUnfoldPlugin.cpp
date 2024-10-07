@@ -71,10 +71,10 @@ nvinfer1::DimsExprs TorchUnfoldPluginDynamic::getOutputDimensions(int           
     ret.d[1]   = exprBuilder.operation(
         nvinfer1::DimensionOperation::kPROD, *inputs[0].d[1], *exprBuilder.constant(mKernelSize[0] * mKernelSize[1]));
 
-    auto w = conv_edge_expr(inputs[0].d[3], mKernelSize[0], mDilation[0], mPadding[0], mStride[0], exprBuilder);
+    auto h   = conv_edge_expr(inputs[0].d[2], mKernelSize[0], mDilation[0], mPadding[0], mStride[0], exprBuilder);
+    auto w = conv_edge_expr(inputs[0].d[3], mKernelSize[1], mDilation[1], mPadding[1], mStride[1], exprBuilder);
 
-    auto h   = conv_edge_expr(inputs[0].d[2], mKernelSize[1], mDilation[1], mPadding[1], mStride[1], exprBuilder);
-    ret.d[2] = exprBuilder.operation(nvinfer1::DimensionOperation::kPROD, *w, *h);
+    ret.d[2] = exprBuilder.operation(nvinfer1::DimensionOperation::kPROD, *h, *w);
 
     return ret;
 }
@@ -126,8 +126,8 @@ int TorchUnfoldPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc* inputDes
     int64_t height     = input_dims.d[2];
     int64_t width      = input_dims.d[3];
 
-    int64_t out_height = (height + 2 * mPadding[1] - (mDilation[1] * (mKernelSize[1] - 1) + 1)) / mStride[1] + 1;
-    int64_t out_width  = (width + 2 * mPadding[0] - (mDilation[0] * (mKernelSize[0] - 1) + 1)) / mStride[0] + 1;
+    int64_t out_height = (height + 2 * mPadding[0] - (mDilation[0] * (mKernelSize[0] - 1) + 1)) / mStride[0] + 1;
+    int64_t out_width  = (width + 2 * mPadding[1] - (mDilation[1] * (mKernelSize[1] - 1) + 1)) / mStride[1] + 1;
 
     for (size_t i = 0; i < size_t(batch_size); ++i) {
         const void* input  = nullptr;
@@ -143,14 +143,14 @@ int TorchUnfoldPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc* inputDes
                                     width,
                                     out_height,
                                     out_width,
-                                    mKernelSize[1],
                                     mKernelSize[0],
-                                    mPadding[1],
+                                    mKernelSize[1],
                                     mPadding[0],
-                                    mStride[1],
+                                    mPadding[1],
                                     mStride[0],
-                                    mDilation[1],
+                                    mStride[1],
                                     mDilation[0],
+                                    mDilation[1],
                                     stream);
                 break;
             case nvinfer1::DataType::kINT32:
@@ -163,14 +163,14 @@ int TorchUnfoldPluginDynamic::enqueue(const nvinfer1::PluginTensorDesc* inputDes
                                       width,
                                       out_height,
                                       out_width,
-                                      mKernelSize[1],
                                       mKernelSize[0],
-                                      mPadding[1],
+                                      mKernelSize[1],
                                       mPadding[0],
-                                      mStride[1],
+                                      mPadding[1],
                                       mStride[0],
-                                      mDilation[1],
+                                      mStride[1],
                                       mDilation[0],
+                                      mDilation[1],
                                       stream);
                 break;
             default:
